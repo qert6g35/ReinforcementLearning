@@ -112,6 +112,7 @@ void getMax(const Matrix& row, int* y, int* x, double* value){
 }
 
 int main(int argc, char *argv[]){
+    cout << "Start";
     srand (time(NULL)); // to generate random weights
     Environment game; // init environment
 

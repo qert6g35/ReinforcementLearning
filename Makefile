@@ -1,3 +1,4 @@
+
 CC = g++
 ODIR = obj
 PROG = main
@@ -14,9 +15,11 @@ $(ODIR)/matrix.o : ./src/matrix.cpp ./include/matrix.h
 	$(CC) -c ./src/matrix.cpp -o $@ $(CXXFLAGS)
 
 $(ODIR) :
-	if [ ! -d $(ODIR) ]; then mkdir $(ODIR); fi
+	mkdir -f $(ODIR)
 
-.PHONY : clean
-clean :
-	if [ -d $(ODIR) ]; then rm $(ODIR) -r; fi
-	if [ -f $(PROG) ]; then rm $(PROG); fi
+.PHONY: clean
+
+clean:
+	@echo %PATH%
+	rm -Rf ./$(ODIR)
+	rm -Rf ./$(PROG)
