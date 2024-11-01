@@ -20,6 +20,5 @@ $(ODIR) :
 .PHONY: clean
 
 clean:
-	@echo %PATH%
 	rm -Rf ./$(ODIR)
 	rm -Rf ./$(PROG)

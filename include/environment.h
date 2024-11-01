@@ -4,12 +4,12 @@
 #include <string>
 #include <iostream>
 
-struct Feedback {
+struct Observation {
     int position;
     double reward;
     bool done;
 
-    Feedback(int position, double reward, bool done){
+    Observation(int position, double reward, bool done){
         this->position = position;
         this->reward = reward;
         this->done = done;
@@ -27,7 +27,7 @@ struct Environment {
         position = 0;
     }
 
-    Feedback step(double action){
+    Observation step(double action){
         if(action==actions[0]){
             if(position>0){
                 position--;
@@ -41,9 +41,9 @@ struct Environment {
         }
 
         if(position==length)
-            return Feedback(position, 1, true);
+            return Observation(position, 1, true);
         else
-            return Feedback(position, 0, false);
+            return Observation(position, 0, false);
     }
 
     int reset(){
