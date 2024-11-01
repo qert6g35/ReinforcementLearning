@@ -57,7 +57,7 @@ void init(int inputNeuron, int hiddenNeuron, int outputNeuron, double rate){
 Matrix computeOutput(vector<double> input){
     X = Matrix({input}); // row matrix
     H = X.dot(W1).add(B1).applyFunction(sigmoid);
-    Y = H.dot(W2).add(B2).applyFunction(sigmoid);
+    return H.dot(W2).add(B2).applyFunction(sigmoid);
     return Y;
 }
 
@@ -112,7 +112,6 @@ void getMax(const Matrix& row, int* y, int* x, double* value){
 }
 
 int main(int argc, char *argv[]){
-    cout << "Start";
     srand (time(NULL)); // to generate random weights
     Environment game; // init environment
 
@@ -149,7 +148,7 @@ int main(int argc, char *argv[]){
             }
 
             // take action
-            Feedback fb = game.step(action);
+            Observation fb = game.step(action);
 
             // get max action in next state
             Matrix nextActions = computeOutput({toCategorical(fb.position, game.length)});
@@ -183,10 +182,36 @@ int main(int argc, char *argv[]){
 
         Matrix actions = computeOutput({toCategorical(position, game.length)});
         getMax(actions, NULL, &action, NULL);
-        Feedback fb = game.step(action);
+        Observation fb = game.step(action);
         done = fb.done;
         position = fb.position;
 
         usleep(200000);
     }
 }
+
+/** MAIN
+ * @param n_threds >>=>> ilosć dostępnych wątków
+ * @param episodes >>->> ilość epizodów szkoleniowych
+ * @param batch_size ->> w każdym epizodzie polityka będzie uczona na @param batch_size przykładach
+ * 
+ * TODO init polityki
+ * TODO init n_threds węzłów obl
+ * 
+ * *wykonaj $EPISODES razy{
+ *   
+ *  
+ *   
+ *   
+ *   
+ *   
+ *   
+ *   
+ * 
+ * }
+ *  2. funkcha run_batch (n:Int) - funkcją która dla podanego agenta wykonuje 
+ * 
+ *  12
+ * 
+ * 
+ */
