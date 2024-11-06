@@ -57,7 +57,7 @@ void init(int inputNeuron, int hiddenNeuron, int outputNeuron, double rate){
 Matrix computeOutput(vector<double> input){
     X = Matrix({input}); // row matrix
     H = X.dot(W1).add(B1).applyFunction(sigmoid);
-    return H.dot(W2).add(B2).applyFunction(sigmoid);
+    Y = H.dot(W2).add(B2).applyFunction(sigmoid);
     return Y;
 }
 
