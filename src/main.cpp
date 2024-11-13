@@ -5,81 +5,12 @@
 #include <unistd.h>
 #include <cmath>
 
-#include "../include/matrix.h"
+//#include "../include/matrix.h"
 #include "../include/environment.h"
+#include "../include/policy.h"
 
 using namespace std;
 
-// params
-Matrix X, W1, H, W2, Y, B1, B2, Y2, dJdB1, dJdB2, dJdW1, dJdW2;
-double learningRate;
-
-// used to init random weights and biases
-double random(double x){
-    return (double)(rand() % 10000 + 1)/10000-0.5;
-}
-
-// the sigmoid function
-double sigmoid(double x){
-    return 1/(1+exp(-x));
-}
-
-// the derivative of the sigmoid function
-double sigmoidePrime(double x){
-    return exp(-x)/(pow(1+exp(-x), 2));
-}
-
-double stepFunction(double x){
-    if(x>0.9){
-        return 1.0;
-    }
-    if(x<0.1){
-        return 0.0;
-    }
-    return x;
-}
-
-void init(int inputNeuron, int hiddenNeuron, int outputNeuron, double rate){
-    learningRate = rate;
-
-    W1 = Matrix(inputNeuron, hiddenNeuron);
-    W2 = Matrix(hiddenNeuron, outputNeuron);
-    B1 = Matrix(1, hiddenNeuron);
-    B2 = Matrix(1, outputNeuron);
-
-    W1 = W1.applyFunction(random);
-    W2 = W2.applyFunction(random);
-    B1 = B1.applyFunction(random);
-    B2 = B2.applyFunction(random);
-}
-
-// forward propagation
-Matrix computeOutput(vector<double> input){
-    X = Matrix({input}); // row matrix
-    H = X.dot(W1).add(B1).applyFunction(sigmoid);
-    Y = H.dot(W2).add(B2).applyFunction(sigmoid);
-    return Y;
-}
-
-// back propagation and params update
-void learn(vector<double> expectedOutput){
-    Y2 = Matrix({expectedOutput}); // row matrix
-
-    // Loss J = 1/2 (expectedOutput - computedOutput)^2
-    // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
-
-    // compute gradients
-    dJdB2 = Y.subtract(Y2).multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime));
-    dJdB1 = dJdB2.dot(W2.transpose()).multiply(X.dot(W1).add(B1).applyFunction(sigmoidePrime));
-    dJdW2 = H.transpose().dot(dJdB2);
-    dJdW1 = X.transpose().dot(dJdB1);
-
-    // update weights and biases
-    W1 = W1.subtract(dJdW1.multiply(learningRate));
-    W2 = W2.subtract(dJdW2.multiply(learningRate));
-    B1 = B1.subtract(dJdB1.multiply(learningRate));
-    B2 = B2.subtract(dJdB2.multiply(learningRate));
-}
 
 std::vector<double> toCategorical(int n, int max){
     std::vector<double> v(max, 0);
@@ -114,11 +45,13 @@ void getMax(const Matrix& row, int* y, int* x, double* value){
 int main(int argc, char *argv[]){
     srand (time(NULL)); // to generate random weights
     Environment game; // init environment
+    Policy agent = Policy(game.length, 10, game.actionsCount, 0.1);
 
+    
     // init network
     // input : game state (ex: [1,0,0,0,0,0,0,0,0,0] when agent is at the first position)
     // output : action to take
-    init(game.length, 10, game.actionsCount, 0.1);
+    //init(game.length, 10, game.actionsCount, 0.1);
 
     // q learning var
     double gamma = 0.8;
@@ -143,7 +76,7 @@ int main(int argc, char *argv[]){
                 action = rand()%game.actionsCount;
             }
             else{
-                Matrix actions = computeOutput({toCategorical(position, game.length)});
+                Matrix actions = agent.computeOutput({toCategorical(position, game.length)});
                 getMax(actions, NULL, &action, NULL);
             }
 
@@ -151,7 +84,7 @@ int main(int argc, char *argv[]){
             Observation fb = game.step(action);
 
             // get max action in next state
-            Matrix nextActions = computeOutput({toCategorical(fb.position, game.length)});
+            Matrix nextActions = agent.computeOutput({toCategorical(fb.position, game.length)});
             getMax(nextActions, NULL, &maxIndex, &max);
             qsa = fb.reward + gamma*max;
 
@@ -161,7 +94,7 @@ int main(int argc, char *argv[]){
                 in[i] = nextActions.get(0, i);
             }
             in[maxIndex] = qsa;
-            learn({in});
+            agent.learn({in});
 
             done = fb.done;
             position = fb.position;
@@ -180,7 +113,7 @@ int main(int argc, char *argv[]){
         game.render();
         std::cout << "\r";
 
-        Matrix actions = computeOutput({toCategorical(position, game.length)});
+        Matrix actions = agent.computeOutput({toCategorical(position, game.length)});
         getMax(actions, NULL, &action, NULL);
         Observation fb = game.step(action);
         done = fb.done;
@@ -191,27 +124,12 @@ int main(int argc, char *argv[]){
 }
 
 /** MAIN
- * @param n_threds >>=>> ilosć dostępnych wątków
- * @param episodes >>->> ilość epizodów szkoleniowych
- * @param batch_size ->> w każdym epizodzie polityka będzie uczona na @param batch_size przykładach
  * 
- * TODO init polityki
- * TODO init n_threds węzłów obl
+ *   TODO
  * 
- * *wykonaj $EPISODES razy{
- *   
- *  
- *   
- *   
- *   
- *   
- *   
- *   
  * 
- * }
- *  2. funkcha run_batch (n:Int) - funkcją która dla podanego agenta wykonuje 
  * 
- *  12
+ * 
  * 
  * 
  */
