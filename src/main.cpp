@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <cmath>
 
-//#include "../include/matrix.h"
+#include "../include/matrix.h"
 #include "../include/environment.h"
 #include "../include/policy.h"
 
@@ -45,9 +45,7 @@ void getMax(const Matrix& row, int* y, int* x, double* value){
 int main(int argc, char *argv[]){
     srand (time(NULL)); // to generate random weights
     Environment game; // init environment
-    Policy agent = Policy(game.length, 10, game.actionsCount, 0.1);
-
-    
+    Policy agent(game.length, 10, game.actionsCount, 0.1);
     // init network
     // input : game state (ex: [1,0,0,0,0,0,0,0,0,0] when agent is at the first position)
     // output : action to take
