@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
     DQN trainer;
 
     Environment game; // init environment
-    Policy agent = trainer.train();//train
+    Policy agent = trainer.train();//uczymy nowego agenta
 
 
     cout << "\n\nPlaying game..." << endl;
