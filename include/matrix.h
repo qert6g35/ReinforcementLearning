@@ -26,7 +26,7 @@ public:
     Matrix multiply(Matrix const &m) const; // hadamard product
     Matrix dot(Matrix const &m) const; // dot product
     Matrix transpose() const; // transposed matrix
-
+    void getMax(int* y,int* x,  double* value) const; // get max value of matrix and its position
     Matrix multiply(double const &value) const; // scalar multiplication
     Matrix applyFunction(double (*function)(double)) const; // to apply a function to every element of the matrix
 
@@ -34,7 +34,7 @@ public:
     int getHeight() const;
     double get(int i, int j) const;
     double sum() const;
-    void print(std::ostream &flux) const; // pretty print of the matrix
+    void print(std::ostream &flux) const;
 
 private:
     std::vector<std::vector<double> > array;

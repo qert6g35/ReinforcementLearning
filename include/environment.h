@@ -5,20 +5,18 @@
 #include <iostream>
 
 struct Observation {
-    int position;
     double reward;
     bool done;
 
-    Observation(int position, double reward, bool done){
-        this->position = position;
+    Observation(double reward, bool done){
         this->reward = reward;
         this->done = done;
     }
 };
 
 struct Environment {
-    const double actions[2] = {0, 1}; // left, right
     const int actionsCount = 2;
+    const double actions[2] = {0, 1}; // left, right
     int position;
     int length;
 
@@ -41,9 +39,9 @@ struct Environment {
         }
 
         if(position==length)
-            return Observation(position, 1, true);
+            return Observation(1, true);
         else
-            return Observation(position, 0, false);
+            return Observation(0, false);
     }
 
     int reset(){
@@ -57,6 +55,18 @@ struct Environment {
             std::cout << (i==position?"X":"_");
         }
         std::cout << "]" << std::flush;
+    }
+
+    std::vector<double> toGameRepresentation(int n, int max){
+        std::vector<double> v(max, 0);
+        v[n] = 1;
+        return v;
+    }
+
+    std::vector<double> getGameRepresentation(){
+        std::vector<double> v(length, 0);
+        v[position] = 1;
+        return v;
     }
 };
 

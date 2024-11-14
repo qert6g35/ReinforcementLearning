@@ -1,4 +1,5 @@
 #include "../include/matrix.h"
+#include <stdlib.h>
 
 Matrix::Matrix(){}
 
@@ -147,8 +148,9 @@ int Matrix::getHeight() const{
     return height;
 }
 
-double Matrix::get(int i, int j) const{
-    assert(i>=0 && i<height && j>=0 && j<width);
+double Matrix::get(int i, int j) const{// First 
+    assert(i>=0 &&  j>=0);
+    assert(i<height && j<width);
     return array[i][j];
 }
 
@@ -195,5 +197,29 @@ void Matrix::print(std::ostream &flux) const
             ss.str(std::string());
         }
         flux << std::endl;
+    }
+}
+
+void Matrix::getMax(int* y,int* x,  double* value) const{
+    double max_value = 0;
+    int w_max=0, h_max=0;
+    for(int w = 0;w<width;w++){
+        for(int h = 0;h<height;h++){
+            if(this->get(h,w) > max_value){
+                max_value = this->get(h,w);
+                w_max = w;
+                h_max = h;
+            }
+        }
+    }
+
+    if(x!=NULL){
+        *x = w_max;
+    }
+    if(y!=NULL){
+        *y = h_max;
+    }
+    if(value!=NULL){
+        *value = max_value;
     }
 }

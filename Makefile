@@ -8,7 +8,7 @@ OBJS = $(ODIR)/main.o $(ODIR)/matrix.o $(ODIR)/policy.o #<< przy dodawaniu tutaj
 $(PROG) : $(ODIR) $(OBJS)
 	$(CC) -o $@ $(OBJS) $(CXXFLAGS)
 
-$(ODIR)/main.o : ./src/main.cpp ./include/matrix.h ./include/environment.h ./include/policy.h
+$(ODIR)/main.o : ./src/main.cpp ./include/DQN.h ./include/matrix.h ./include/environment.h ./include/policy.h
 	$(CC) -c ./src/main.cpp -o $@ $(CXXFLAGS)
 
 $(ODIR)/matrix.o : ./src/matrix.cpp ./include/matrix.h
