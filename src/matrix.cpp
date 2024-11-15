@@ -148,10 +148,10 @@ int Matrix::getHeight() const{
     return height;
 }
 
-double Matrix::get(int i, int j) const{// First 
-    assert(i>=0 &&  j>=0);
-    assert(i<height && j<width);
-    return array[i][j];
+double Matrix::get(int h, int w) const{// First heigth than width (y,x)
+    assert(h>=0 &&  w>=0);
+    assert(h<height && w<width);
+    return array[h][w];
 }
 
 double Matrix::sum() const {

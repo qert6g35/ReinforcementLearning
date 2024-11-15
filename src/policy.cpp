@@ -55,7 +55,7 @@ void Policy::learn(std::vector<double> expectedOutput){
     // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
 
     // compute gradients
-    dJdB2 = Y.subtract(Y2).multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime));
+    dJdB2 = Y2.subtract(Y).multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime));
     dJdB1 = dJdB2.dot(W2.transpose()).multiply(X.dot(W1).add(B1).applyFunction(sigmoidePrime));
     dJdW2 = H.transpose().dot(dJdB2);
     dJdW1 = X.transpose().dot(dJdB1);
