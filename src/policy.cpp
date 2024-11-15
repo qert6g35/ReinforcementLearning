@@ -42,7 +42,7 @@ Policy::Policy(int inputNeuron, int hiddenNeuron, int outputNeuron,double learni
 // forward propagation
 Matrix Policy::computeOutput(std::vector<double> input){
     X = Matrix({input}); // row matrix
-    H = X.dot(W1).add(B1).applyFunction(sigmoid);
+    H = X.dot(W1).add(B1).applyFunction(sigmoid); //output of hidden leayer
     Y = H.dot(W2).add(B2).applyFunction(sigmoid);
     return Y;
 }
@@ -61,8 +61,8 @@ void Policy::learn(std::vector<double> expectedOutput){
     dJdW1 = X.transpose().dot(dJdB1);
 
     // update weights and biases
-    W1 = W1.subtract(dJdW1.multiply(learningRate));
-    W2 = W2.subtract(dJdW2.multiply(learningRate));
-    B1 = B1.subtract(dJdB1.multiply(learningRate));
-    B2 = B2.subtract(dJdB2.multiply(learningRate));
+    W1 = W1.add(dJdW1.multiply(learningRate));
+    W2 = W2.add(dJdW2.multiply(learningRate));
+    B1 = B1.add(dJdB1.multiply(learningRate));
+    B2 = B2.add(dJdB2.multiply(learningRate));
 }

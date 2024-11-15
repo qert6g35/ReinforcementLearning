@@ -18,14 +18,14 @@ struct DQN{
     double eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     double epsDecay = 0.95; // procent maleje TODO
 
-    //Wint episode = 100;
+    //int episode = 100;
 
     Policy train(int episode = 100){
         cout << "Start training,  episodes:"<<episode<<endl;
         for (int i=0 ; i<episode ; i++){
-            if(i%10 == 9){
+            //if(i%10 == 9){
                 cout << "Episode " << i+1 << "/" << episode << "\t";
-            }
+            //}
             int steps=0, maxIndex=0, action=0;
             double qsa=0, max=0;
             bool done=false;
@@ -53,6 +53,7 @@ struct DQN{
                 //
                 // get max action in next state
                 Matrix Qprox_next = agent.computeOutput({game.getGameRepresentation()});//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
+                //Qprox_next.print(cout);
                 // maxIndex <to> akcja która jako następna wdłg naszego oszacowania jest najleprsza (najlepsza następna akcja)
                 // max <to> oszacowana wartosć Q tej najlepszej akcji
                 Qprox_next.getMax( NULL, &maxIndex, &max);
@@ -64,6 +65,8 @@ struct DQN{
                 // kopiujemy Aproksymację następnych ruchów //! Matrix > Vector !! 
                 for(int i=0 ; i<Qprox_next.getWidth() ; i++){
                     in[i] = Qprox_next.get(0, i);
+                    //? used below to check in network is working corectly
+                    //*in[i] =i
                 }
                 // podmiana wartości oszacowanej ???? //! przez to co tu się dzieje ten program w zaszdzie może mocno nie działać !!
                 in[maxIndex] = qsa;
@@ -72,9 +75,9 @@ struct DQN{
                 done = fb.done;
                 eps *= epsDecay;
             }
-            if(i%10 == 9){
+            //if(i%10 == 9){
                 cout << "[" << steps << " steps]" << endl;
-            }
+            //}
         }
 
         return agent;
