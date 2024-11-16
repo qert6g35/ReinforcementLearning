@@ -53,7 +53,7 @@ struct DQN{
                 //
                 // get max action in next state
                 Matrix Qprox_next = agent.computeOutput({game.getGameRepresentation()});//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
-                //Qprox_next.print(cout);
+                Qprox_next.print(cout);
                 // maxIndex <to> akcja która jako następna wdłg naszego oszacowania jest najleprsza (najlepsza następna akcja)
                 // max <to> oszacowana wartosć Q tej najlepszej akcji
                 Qprox_next.getMax( NULL, &maxIndex, &max);
@@ -64,12 +64,12 @@ struct DQN{
                 std::vector<double> in(game.actionsCount);
                 // kopiujemy Aproksymację następnych ruchów //! Matrix > Vector !! 
                 for(int i=0 ; i<Qprox_next.getWidth() ; i++){
-                    in[i] = Qprox_next.get(0, i);
+                    //in[i] = Qprox_next.get(0, i);
                     //? used below to check in network is working corectly
-                    //*in[i] =i
+                    in[i] =i;
                 }
                 // podmiana wartości oszacowanej ???? //! przez to co tu się dzieje ten program w zaszdzie może mocno nie działać !!
-                in[maxIndex] = qsa;
+                //in[maxIndex] = qsa;
                 agent.learn({in});
 
                 done = fb.done;

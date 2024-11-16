@@ -55,10 +55,16 @@ void Policy::learn(std::vector<double> expectedOutput){
     // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
 
     // compute gradients
-    dJdB2 = Y2.subtract(Y).multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime));
-    dJdB1 = dJdB2.dot(W2.transpose()).multiply(X.dot(W1).add(B1).applyFunction(sigmoidePrime));
-    dJdW2 = H.transpose().dot(dJdB2);
-    dJdW1 = X.transpose().dot(dJdB1);
+    // J = D2
+    Matrix D2 = Y2.subtract(Y); // błąd drugiej warstwy
+    Matrix e2 = D2.multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime)); // błąd wewnętrzy neurownów 2. warstwy
+    Matrix D1 = e2.dot(W2.transpose());//  błąd pierwszej warstwy
+    Matrix e1 = D1.multiply(X.dot(W1).add(B1).applyFunction(sigmoidePrime)); // błąd wewnętrzy neurownów 1. warstwy
+
+    dJdW2 = H.transpose().dot(e2);// operacja dot wyznaczy nam kombinacje 
+    dJdB2 = e2; // e2 [e,e] . [1,1]^T
+    dJdW1 = X.transpose().dot(e1);
+    dJdB1 = e1;
 
     // update weights and biases
     W1 = W1.add(dJdW1.multiply(learningRate));
