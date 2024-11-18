@@ -7,25 +7,28 @@
 #include <time.h>
 #include <unistd.h>
 #include <cmath>
+#include <vector>
 
 #include "../include/matrix.h"
 
 class Policy{
+    private:
+        int hidden_count;
+        double learningRate;
     public:
-    /*
+    //  Wagi i bajasy
+    std::vector<Matrix> W,B;
     
+    //  przechowywanie danych działania
+    Matrix X, Y;
+    std::vector<Matrix> H;
+    std::vector<Matrix> dJdW, dJdB;
 
-
-    */
-    int n_layer = 1;
-    Matrix X, W1, H, W2, Y, B1, B2, Y2, dJdB1, dJdB2, dJdW1, dJdW2;
-    double learningRate;
-
-    Policy(int inputNeuron, int hiddenNeuron, int outputNeuron,double learning_rate);
+    Policy(int inputSize, int hidden_size,int hidden_count, int outputSize,double learning_rate);
 
 
     Matrix computeOutput(std::vector<double> input);
-    void learn(std::vector<double> expectedOutput);
+    void learn(std::vector<double> expectedOutput,std::vector<double> input,bool update_on_spot = true);
 };
 
 
