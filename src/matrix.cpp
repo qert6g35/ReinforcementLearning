@@ -148,6 +148,12 @@ int Matrix::getHeight() const{
     return height;
 }
 
+std::vector<double> Matrix::getRow(int witchOne) const{
+    assert(witchOne>=0);
+    assert(witchOne<height);
+    return array[witchOne];
+}
+
 double Matrix::get(int h, int w) const{// First heigth than width (y,x)
     assert(h>=0 &&  w>=0);
     assert(h<height && w<width);

@@ -35,9 +35,10 @@ public:
     double get(int i, int j) const;
     double sum() const;
     void print(std::ostream &flux) const;
+    std::vector<double> getRow(int witchOne) const;
 
 private:
-    std::vector<std::vector<double> > array;
+    std::vector<std::vector<double>> array;
     int height;
     int width;
 };
