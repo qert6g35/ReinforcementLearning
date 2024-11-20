@@ -13,6 +13,8 @@ using namespace std;
 struct DQN{
     Environment game; // init environment
     Policy agent = Policy(game.length, 10,2, game.actionsCount, 0.2);
+    Policy target_agent = agent.copy();
+    
 
     double gamma = 0.8;
     double eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
@@ -20,9 +22,12 @@ struct DQN{
 
     int episode_n = 100;
 
-
-
+    Matrix odp1 = agent.computeOutput({game.getGameRepresentation()});
+    Matrix odp2 = target_agent.computeOutput({game.getGameRepresentation()});
+    
     Policy train(){
+
+        cout << odp1 << endl << odp2 << endl;
         cout << "Start training,  episodes:"<<episode_n<<endl;
         for (int i=0 ; i<episode_n ; i++){
             int steps=0, maxIndex=0, action=0;
@@ -96,15 +101,19 @@ struct DQN{
 
                 eps *= epsDecay;
             }
-            //if(i%10 == 0 || i%10 == 1){
+            if(i%10 == 0 || i%10 == 1){
                 cout << "Episode " << i+1 << "/" << episode_n << "\t";
                 cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
-            //}
+            }
             if(steps == 300 && eps < 0.001){
                 eps = 1.0;
             }
 
         }
+
+        odp1 = agent.computeOutput({game.getGameRepresentation()});
+        odp2 = target_agent.computeOutput({game.getGameRepresentation()});
+        cout << odp1 << endl << odp2 << endl;
         return agent;
     }
 };

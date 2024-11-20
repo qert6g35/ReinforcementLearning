@@ -48,6 +48,10 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "cerrno": "cpp",
+        "climits": "cpp",
+        "ios": "cpp",
+        "queue": "cpp"
     }
 }

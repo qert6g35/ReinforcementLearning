@@ -15,6 +15,22 @@ double sigmoidePrime(double x){
     return exp(-x)/(pow(1+exp(-x), 2));
 }
 
+std::vector<Matrix> Matrix::getW() const{
+    return W.copy();
+}
+std::vector<Matrix> Matrix::getB() const{
+    return B.copy();
+}
+
+Policy::Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB){
+    learningRate = n_learningRate;
+    hidden_count = n_hidden_count;
+
+    W = nW;
+    H = nH;
+    B = nB;
+}
+
 Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,double learning_rate){
     learningRate = learning_rate;
     hidden_count = _hidden_count;
@@ -48,9 +64,27 @@ Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,
     // B1 = B1.applyFunction(random);
     // B2 = B2.applyFunction(random);
     }
-    //std::cout<<"We will expect "<<H.size()<<" hidden layers"<<std::endl;
+    //std::cout<<"We Policy(int n_hidden_count,double n_learningRate,Matrix W,Matrix H)will expect "<<H.size()<<" hidden layers"<<std::endl;
     //std::cout<<"We have "<<W.size()<<" w and b"<<std::endl;
 }
+
+
+Policy Policy::copy() const{
+    std::cout<<"?";
+    //std::vector<Matrix>  newW(hidden_count+1),newB(hidden_count+1),newH(hidden_count);
+    // for(int i =0;i<hidden_count+1;i++){
+    //     std::cout<<"?";
+    //     newW.push_back(W[i].copy());
+    //     newB.push_back(B[i].copy());
+    //     if(i != 0){
+    //         newH.push_back(H[i].copy());
+    //     }
+    // }
+
+    // Policy newPolicy = Policy(hidden_count,learningRate,newW,newH,newB);
+    return Policy(hidden_count,learningRate,W,H,B);
+}
+
 
 // forward propagation
 Matrix Policy::computeOutput(std::vector<double> input){
@@ -113,7 +147,8 @@ void Policy::learn(std::vector<double> expectedOutput,std::vector<double> input,
         dJdB.clear();
     }
     // stara sieć
-    // Matrix D2 = Y2.subtract(Y); // błąd drugiej warstwy
+  nB;
+}   // Matrix D2 = Y2.subtract(Y); // błąd drugiej warstwy
     // Matrix e2 = D2.multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime)); // błąd wewnętrzy neurownów 2. warstwy
 
     // dJdW2 = H.transpose().dot(e2);// operacja dot wyznaczy nam kombinacje 
@@ -129,5 +164,5 @@ void Policy::learn(std::vector<double> expectedOutput,std::vector<double> input,
     // W1 = W1.add(dJdW1.multiply(learningRate));
     // W2 = W2.add(dJdW2.multiply(learningRate));
     // B1 = B1.add(dJdB1.multiply(learningRate));
-    // B2 = B2.add(dJdB2.multiply(learningRate));
+ nB;
 }

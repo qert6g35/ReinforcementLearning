@@ -29,7 +29,8 @@ public:
     void getMax(int* y,int* x,  double* value) const; // get max value of matrix and its position
     Matrix multiply(double const &value) const; // scalar multiplication
     Matrix applyFunction(double (*function)(double)) const; // to apply a function to every element of the matrix
-
+    
+    Matrix copy() const;
     int getWidth() const;
     int getHeight() const;
     double get(int i, int j) const;

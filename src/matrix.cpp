@@ -112,6 +112,19 @@ Matrix Matrix::dot(Matrix const &m) const
     return result;
 }
 
+Matrix Matrix::copy() const{
+    std::cout<<"?";
+    std::vector<std::vector<double>> newArray = std::vector<std::vector<double>>(height); 
+    for(int h = 0; h<height; h++){
+        newArray[h] = std::vector<double>(width);
+        for(int w = 0; w<width;w++){
+            std::cout<<"?";
+            newArray[h][w] = array[h][w];
+        }
+    } 
+    return Matrix(newArray);
+}
+
 Matrix Matrix::transpose() const
 {
     Matrix result(width, height);
@@ -136,11 +149,11 @@ Matrix Matrix::applyFunction(double (*function)(double)) const
             result.array[i][j] = (*function)(array[i][j]);
         }
     }
-
+;
     return result;
 }
 
-int Matrix::getWidth() const{
+int Matrix::getWidth() const{;
     return width;
 }
 
