@@ -34,6 +34,8 @@ public:
     void learn(std::vector<double> expectedOutput,std::vector<double> input,bool update_on_spot = true);
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
+    void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);
+    void updateParameters(Policy actual_policy);
 };
 
 

@@ -15,11 +15,22 @@ double sigmoidePrime(double x){
     return exp(-x)/(pow(1+exp(-x), 2));
 }
 
-std::vector<Matrix> Matrix::getW() const{
-    return W.copy();
+void Policy::updateParameters(std::vector<Matrix> newW,std::vector<Matrix> newB){
+    W = newW;
+    B = newB;
 }
-std::vector<Matrix> Matrix::getB() const{
-    return B.copy();
+
+void Policy::updateParameters(Policy actual_policy){
+    W = actual_policy.W;
+    B = actual_policy.B;
+}
+
+std::vector<Matrix> Policy::getW() const{
+    return W;
+}
+
+std::vector<Matrix> Policy::getB() const{
+    return B;
 }
 
 Policy::Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB){
@@ -70,18 +81,7 @@ Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,
 
 
 Policy Policy::copy() const{
-    std::cout<<"?";
-    //std::vector<Matrix>  newW(hidden_count+1),newB(hidden_count+1),newH(hidden_count);
-    // for(int i =0;i<hidden_count+1;i++){
-    //     std::cout<<"?";
-    //     newW.push_back(W[i].copy());
-    //     newB.push_back(B[i].copy());
-    //     if(i != 0){
-    //         newH.push_back(H[i].copy());
-    //     }
-    // }
-
-    // Policy newPolicy = Policy(hidden_count,learningRate,newW,newH,newB);
+    //std::cout<<"?";
     return Policy(hidden_count,learningRate,W,H,B);
 }
 
@@ -147,7 +147,7 @@ void Policy::learn(std::vector<double> expectedOutput,std::vector<double> input,
         dJdB.clear();
     }
     // stara sieć
-  nB;
+    //nB;
 }   // Matrix D2 = Y2.subtract(Y); // błąd drugiej warstwy
     // Matrix e2 = D2.multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime)); // błąd wewnętrzy neurownów 2. warstwy
 
@@ -164,5 +164,5 @@ void Policy::learn(std::vector<double> expectedOutput,std::vector<double> input,
     // W1 = W1.add(dJdW1.multiply(learningRate));
     // W2 = W2.add(dJdW2.multiply(learningRate));
     // B1 = B1.add(dJdB1.multiply(learningRate));
- nB;
-}
+//  nB;
+// }

@@ -19,6 +19,8 @@ struct DQN{
     double gamma = 0.8;
     double eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     double epsDecay = 0.995; // procent maleje TODO
+    int target_agent_update_freaquency = 50;
+    int target_agent_count_down = target_agent_update_freaquency;
 
     int episode_n = 100;
 
@@ -82,7 +84,7 @@ struct DQN{
                 //
                 //
                 // get best action in next state
-                Matrix Qprox_next = agent.computeOutput({game.getGameRepresentation()});//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
+                Matrix Qprox_next = target_agent.computeOutput({game.getGameRepresentation()});//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
                 //Qprox_next.print(cout);
                 // maxIndex <to> akcja która jako następna wdłg naszego oszacowania jest najleprsza (najlepsza następna akcja)
                 // max <to> oszacowana wartosć Q tej najlepszej akcji
@@ -100,11 +102,17 @@ struct DQN{
                 agent.learn(correction,oldGameRepresentation);
 
                 eps *= epsDecay;
+                if(target_agent_count_down == 0){
+                    target_agent.updateParameters(agent);
+                    target_agent_count_down = target_agent_update_freaquency;
+                }else{
+                    target_agent_count_down--;
+                }
             }
-            if(i%10 == 0 || i%10 == 1){
+            //if(i%10 == 0 || i%10 == 1){
                 cout << "Episode " << i+1 << "/" << episode_n << "\t";
                 cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
-            }
+            //}
             if(steps == 300 && eps < 0.001){
                 eps = 1.0;
             }
