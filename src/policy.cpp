@@ -110,9 +110,9 @@ Matrix Policy::computeOutput(std::vector<double> input){
 }   
 
 // back propagation and params update
-void Policy::learn(std::vector<double> expectedOutput,std::vector<double> input,bool update_on_spot){
-    Matrix Y2 = Matrix({expectedOutput}); // row matrix
-    computeOutput(input);
+void Policy::learn(double q_correction,int action,std::vector<double> oldGameRepresentation,bool update_on_spot){ // row matrix
+    Matrix Y2 = computeOutput(oldGameRepresentation);
+    Y2.set(0,action,q_correction);
     // Loss J = 1/2 (expectedOutput - computedOutput)^2
     // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
     //std::cout<<"start learn hidden:"<<hidden_count<<std::endl;

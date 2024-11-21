@@ -34,6 +34,7 @@ public:
     int getWidth() const;
     int getHeight() const;
     double get(int i, int j) const;
+    void set(int i, int j,double v);
     double sum() const;
     void print(std::ostream &flux) const;
     std::vector<double> getRow(int witchOne) const;

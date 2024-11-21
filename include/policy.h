@@ -31,7 +31,7 @@ public:
 
     Policy copy() const;
     Matrix computeOutput(std::vector<double> input);
-    void learn(std::vector<double> expectedOutput,std::vector<double> input,bool update_on_spot = true);
+    void learn(double q_correction,int action,std::vector<double> oldGameRepresentation, bool update_on_spot = true);
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
     void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);

@@ -173,6 +173,12 @@ double Matrix::get(int h, int w) const{// First heigth than width (y,x)
     return array[h][w];
 }
 
+void Matrix::set(int h, int w,double v){
+    assert(h>=0 &&  w>=0);
+    assert(h<height && w<width);
+    array[h][w] = v;
+}
+
 double Matrix::sum() const {
     double sum = 0.0;
     for (int i=0 ; i<height ; i++){

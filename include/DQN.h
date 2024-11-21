@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <random>
 
 #include "../include/matrix.h"
 #include "../include/environment.h"
@@ -10,11 +11,39 @@
 
 using namespace std;
 
+struct DQNMemoryUnit
+{
+    std::vector<double> game = std::vector<double>();
+    std::vector<double> game_next = std::vector<double>();
+    int action;
+    double reward; 
+
+    DQNMemoryUnit(std::vector<double> ngame,std::vector<double> ngame_next,int naction,double nreward){
+        game = ngame;
+        game_next = ngame_next;
+        action = naction;
+        reward = nreward;
+    }
+};
+
+
+DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory){
+    // random_device rd;
+    // mt19937 gen = mt19937(rd());
+    // uniform_int_distribution<int> distrib(0, memory.size());
+    int example = memory.size() - 1;
+    //cout<<" e:"<<example<<" mem_size:"<<memory.size()<<endl;
+    return memory[example];
+}
+
+
 struct DQN{
     Environment game; // init environment
+
     Policy agent = Policy(game.length, 10,2, game.actionsCount, 0.2);
     Policy target_agent = agent.copy();
-    
+
+    std::vector<DQNMemoryUnit> memory;
 
     double gamma = 0.8;
     double eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
@@ -28,34 +57,32 @@ struct DQN{
     Matrix odp2 = target_agent.computeOutput({game.getGameRepresentation()});
     
     Policy train(){
-
-        cout << odp1 << endl << odp2 << endl;
+        //cout << odp1 << endl << odp2 << endl;
         cout << "Start training,  episodes:"<<episode_n<<endl;
         for (int i=0 ; i<episode_n ; i++){
             int steps=0, maxIndex=0, action=0;
-            double qsa=0, max=0;
+            double q_correction=0, max=0;
             bool done=false;
-            std::vector<double> correction;
             Matrix Qaprox;
             
             game.reset();
 
-            int stepper = 0;
-            while(!done){
-                stepper++;
-                game.render();
-                std::cout << "\r";
+            // int stepper = 0;
+            // while(!done){
+            //     stepper++;
+            //     game.render();
+            //     std::cout << "\r";
 
-                Matrix actions = agent.computeOutput({game.getGameRepresentation()});
-                actions.getMax( NULL, &action, NULL);
-                Observation fb = game.step(action);
-                done = fb.done;
-                //position = fb.position;
-                if(stepper > 30){
-                    break;
-                }
-                usleep(25000);
-            }
+            //     Matrix actions = agent.computeOutput({game.getGameRepresentation()});
+            //     actions.getMax( NULL, &action, NULL);
+            //     Observation fb = game.step(action);
+            //     done = fb.done;
+            //     //position = fb.position;
+            //     if(stepper > 30){
+            //         break;
+            //     }
+            //     usleep(25000);
+            // }
 
             game.reset();
             done=false;
@@ -64,16 +91,13 @@ struct DQN{
                 // save enviroment before takeing action
                 std::vector<double> oldGameRepresentation = game.getGameRepresentation();
 
-                //aproximateing q table
-                Qaprox = agent.computeOutput({game.getGameRepresentation()});
-
                 // take random actions sometimes to allow game exploration
                 if(((double) rand() / RAND_MAX) < eps){
                     action = rand()%game.actionsCount;
                 }
                 else{
                     //picking action that follows Q-table
-                    Qaprox.getMax( NULL, &action, NULL);
+                    agent.computeOutput({game.getGameRepresentation()}).getMax( NULL, &action, NULL);
                 }
 
                 // take action in enviroment
@@ -81,25 +105,25 @@ struct DQN{
                 Observation fb = game.step(action);
                 done = fb.done;
                 //
-                //
-                //
+                // saveing that moment in 
+                memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward));
+                //DQNMemoryUnit learningEgxample = memory[memory.size() - 1];//choose_random_from_(memory,gen);
+                DQNMemoryUnit learningEgxample = choose_random_from_(memory);
                 // get best action in next state
-                Matrix Qprox_next = target_agent.computeOutput({game.getGameRepresentation()});//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
+                Matrix Qprox_next = target_agent.computeOutput(learningEgxample.game_next);//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
                 //Qprox_next.print(cout);
                 // maxIndex <to> akcja która jako następna wdłg naszego oszacowania jest najleprsza (najlepsza następna akcja)
                 // max <to> oszacowana wartosć Q tej najlepszej akcji
                 Qprox_next.getMax( NULL, NULL, &max);
                 // parametr QSA <to> R_s + wsp * wartość następnej najlepszej akcji
                 if(done == true){
-                    qsa = fb.reward;
+                    q_correction = learningEgxample.reward;
                 }else{
-                    qsa = fb.reward + gamma*max;
+                    q_correction = learningEgxample.reward + gamma*max;
                 }
                 //Qaprox.print(cout);
-                correction = Qaprox.getRow(0);
-                correction[action] = qsa;
 
-                agent.learn(correction,oldGameRepresentation);
+                agent.learn(q_correction,action,oldGameRepresentation);
 
                 eps *= epsDecay;
                 if(target_agent_count_down == 0){
@@ -113,7 +137,7 @@ struct DQN{
                 cout << "Episode " << i+1 << "/" << episode_n << "\t";
                 cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
             //}
-            if(steps == 300 && eps < 0.001){
+            if(steps == 300 && eps < 0.0001){
                 eps = 1.0;
             }
 
