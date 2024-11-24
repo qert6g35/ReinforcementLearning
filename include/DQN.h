@@ -27,11 +27,9 @@ struct DQNMemoryUnit
 };
 
 
-DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory){
-    // random_device rd;
-    // mt19937 gen = mt19937(rd());
-    // uniform_int_distribution<int> distrib(0, memory.size());
-    int example = memory.size() - 1;
+DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory,mt19937 gen){
+    uniform_int_distribution<int> distrib(0, memory.size()-1);
+    int example = distrib(gen);//memory.size() - 1;
     //cout<<" e:"<<example<<" mem_size:"<<memory.size()<<endl;
     return memory[example];
 }
@@ -50,6 +48,8 @@ struct DQN{
     double epsDecay = 0.995; // procent maleje TODO
     int target_agent_update_freaquency = 50;
     int target_agent_count_down = target_agent_update_freaquency;
+    random_device rd;
+    mt19937 gen = mt19937(rd());
 
     int episode_n = 100;
 
@@ -108,7 +108,7 @@ struct DQN{
                 // saveing that moment in 
                 memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward));
                 //DQNMemoryUnit learningEgxample = memory[memory.size() - 1];//choose_random_from_(memory,gen);
-                DQNMemoryUnit learningEgxample = choose_random_from_(memory);
+                DQNMemoryUnit learningEgxample = choose_random_from_(memory,gen);
                 // get best action in next state
                 Matrix Qprox_next = target_agent.computeOutput(learningEgxample.game_next);//TODO tutaj sieć ma już inne wyjście policzone (ni to dla którego jest obecna nagroda!!!!)
                 //Qprox_next.print(cout);
@@ -123,7 +123,7 @@ struct DQN{
                 }
                 //Qaprox.print(cout);
 
-                agent.learn(q_correction,action,oldGameRepresentation);
+                agent.learn(q_correction,learningEgxample.action,learningEgxample.game);
 
                 eps *= epsDecay;
                 if(target_agent_count_down == 0){
