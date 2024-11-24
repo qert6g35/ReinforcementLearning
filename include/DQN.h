@@ -156,6 +156,7 @@ struct DQN{
                 odp1 = agent.computeOutput({game.getGameRepresentation()});
                 cout <<"agent        "<< odp1<< endl;
             }
+            steps = 0;
 
         }
 
@@ -177,19 +178,18 @@ struct DQN{
 
 
 eksplodujący gradient, wartości zaczynają lecieć w nieskończoność + lub - 
-agent -2.34e+34 -9.606e+31 i leci const -81 na corection
+agent -2.34e+34 -9.606e+31 i leci const correction -81 action 0 
+agent  -3  i - 40                         
+agent -0.008 i -0.0917 corection const = -1 na action 0
+
+tutaj zawsze idziemy w lewo, mimo że epsilon jest srestartowany, na każdeym resecie jest szansa że wartości zwaracane przez agenta będą jeszcze gorsze
+w momencie resetu (kiedy zablokowany alg zreseruje wsp. eksploracji to na zaminę pogarsza ) 
 
 
 
-corection const = -1 na 0
--0.008 -0.0917
-tutaj zawsze idziemy w prawo bo -
+po zdjęciu blokady na MAX ujemną wartość (-100 było najmniejszą możliwą wartością w getMax)
 
-
-
-
-
-
+agent się poddał i wyrzuca -nan -nan
 
 
 
