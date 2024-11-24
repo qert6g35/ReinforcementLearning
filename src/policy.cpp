@@ -15,6 +15,73 @@ double sigmoidePrime(double x){
     return exp(-x)/(pow(1+exp(-x), 2));
 }
 
+// the ReLU function
+double ReLU(double x){
+    if(x<0){
+        return 0;
+    }else{
+        return x;
+    }
+}
+
+// the derivative of the ReLU function
+double ReLUPrime(double x){
+    if(x<0){
+        return 0;
+    }else{
+        return 1;
+    }
+}
+
+// the ReLU function
+double LeakyReLU(double x){
+    if(x<0){
+        return 0.1*x;
+    }else{
+        return x;
+    }
+}
+
+// the derivative of the ReLU function
+double LeakyReLUPrime(double x){
+    if(x<0){
+        return 0.1;
+    }else{
+        return 1;
+    }
+}
+
+// the linear function
+double linear(double x){
+    return x;
+}
+
+// the derivative of the linear function
+double linearPrime(double x){
+    return 1;
+}
+
+// // Tutuaj można podmienić funkcjie aktywacji dla każdej z warstw (MIE ZAPOMNIJ O PRIME!!)
+// double Policy::activate(double value,int n_layer) const{
+//     if(n_layer == 0){
+//         return sigmoid(value);
+//     }else if(n_layer != hidden_count){
+//         return ReLU(value);
+//     }else{
+//         return linear(value);
+//     }
+// }
+
+// std::function<double(double)> Policy::activatePrime(double value,int n_layer) const{
+//     if(n_layer == 0){
+//         return sigmoidePrime;
+//     }else if(n_layer != hidden_count){
+//         return ReLUPrime;
+//     }else{
+//         return linearPrime;
+//     }
+// }
+
 void Policy::updateParameters(std::vector<Matrix> newW,std::vector<Matrix> newB){
     W = newW;
     B = newB;
@@ -93,14 +160,14 @@ Matrix Policy::computeOutput(std::vector<double> input){
     //X.print(std::cout);
     for(int n = 0;n <hidden_count + 1;n++){
         //std::cout<<"just calculated: "<<std::endl;
-        if(n == 0){
+        if(n == 0){//! dla pierwszej warstwy
             H[n] = X.dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
             //H[n].print(std::cout);
-        }else if(n == hidden_count){
-            Y = H[n-1].dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = hidden_count
+        }else if(n == hidden_count){//! dla ostatniej warstwy
+            Y = H[n-1].dot(W[n]).add(B[n]).applyFunction(linear); // n = hidden_count
             //Y.print(std::cout);
-        }else{
-            H[n] = H[n-1].dot(W[n]).add(B[n]).applyFunction(sigmoid);
+        }else{//! dla każdej innej warstwy
+            H[n] = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
             //H[n].print(std::cout);
         }
     }
@@ -119,19 +186,19 @@ void Policy::learn(double q_correction,int action,std::vector<double> oldGameRep
     Matrix D;
     for(int n = hidden_count - 1;n>=-1;n--){
         //std::cout<<"calculate dJdWB n:"<<n<<std::endl;
-        if(n == -1){
+        if(n == -1){//! dla pierwszej warstwy
             D = dJdB.front().dot(W[n+2].transpose());
             dJdB.insert(dJdB.begin(),D.multiply(X.dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
             dJdW.insert(dJdW.begin(),X.transpose().dot(dJdB.front()));
-        }else if(n == hidden_count - 1){
+        }else if(n == hidden_count - 1){//! dla ostatniej warstwy
             D = Y2.subtract(Y);
-            dJdB.insert(dJdB.begin(),D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
+            dJdB.insert(dJdB.begin(),D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(linearPrime)));
             dJdW.insert(dJdW.begin(),H[n].transpose().dot(dJdB.front()));
-        }else{
+        }else{//! dla każdej innej warstwy
             //std::cout<<"1"<<std::endl;
             D = dJdB.front().dot(W[n+2].transpose());
             //std::cout<<"2"<<std::endl;
-            dJdB.insert(dJdB.begin(),D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
+            dJdB.insert(dJdB.begin(),D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
             //std::cout<<"3"<<n<<std::endl;
             dJdW.insert(dJdW.begin(),H[n].transpose().dot(dJdB.front()));
             //std::cout<<"1"<<n<<std::endl;

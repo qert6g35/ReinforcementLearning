@@ -36,6 +36,8 @@ public:
     std::vector<Matrix> getB() const;
     void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);
     void updateParameters(Policy actual_policy);
+    // double activate(double value,int n_layer) const;
+    // double activatePrime(double value,int n_layer) const;
 };
 
 

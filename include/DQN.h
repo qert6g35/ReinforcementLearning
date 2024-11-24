@@ -38,7 +38,7 @@ DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory,mt19937 gen)
 struct DQN{
     Environment game; // init environment
 
-    Policy agent = Policy(game.length, 10,2, game.actionsCount, 0.2);
+    Policy agent = Policy(game.length, 5,4, game.actionsCount, 0.05);
     Policy target_agent = agent.copy();
 
     std::vector<DQNMemoryUnit> memory;
@@ -55,9 +55,9 @@ struct DQN{
 
     Matrix odp1 = agent.computeOutput({game.getGameRepresentation()});
     Matrix odp2 = target_agent.computeOutput({game.getGameRepresentation()});
-    
+
     Policy train(){
-        //cout << odp1 << endl << odp2 << endl;
+        //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
         cout << "Start training,  episodes:"<<episode_n<<endl;
         for (int i=0 ; i<episode_n ; i++){
             int steps=0, maxIndex=0, action=0;
@@ -84,7 +84,12 @@ struct DQN{
             //     usleep(25000);
             // }
 
-            game.reset();
+            //game.reset();
+
+
+            //odp1 = agent.computeOutput({game.getGameRepresentation()});
+            //odp2 = target_agent.computeOutput({game.getGameRepresentation()});
+            //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
             done=false;
             while(!done && steps<300){
                 steps++;
@@ -133,6 +138,8 @@ struct DQN{
                     target_agent_count_down--;
                 }
             }
+            target_agent.updateParameters(agent);
+            target_agent_count_down = target_agent_update_freaquency;
             //if(i%10 == 0 || i%10 == 1){
                 cout << "Episode " << i+1 << "/" << episode_n << "\t";
                 cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
@@ -143,9 +150,9 @@ struct DQN{
 
         }
 
-        odp1 = agent.computeOutput({game.getGameRepresentation()});
-        odp2 = target_agent.computeOutput({game.getGameRepresentation()});
-        cout << odp1 << endl << odp2 << endl;
+        //odp1 = agent.computeOutput({game.getGameRepresentation()});
+        //odp2 = target_agent.computeOutput({game.getGameRepresentation()});
+        //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
         return agent;
     }
 };
