@@ -36,7 +36,7 @@ double ReLUPrime(double x){
 // the ReLU function
 double LeakyReLU(double x){
     if(x<0){
-        return 0.1*x;
+        return 0.25*x;
     }else{
         return x;
     }
@@ -45,20 +45,10 @@ double LeakyReLU(double x){
 // the derivative of the ReLU function
 double LeakyReLUPrime(double x){
     if(x<0){
-        return 0.1;
+        return -0.25;
     }else{
         return 1;
     }
-}
-
-// the linear function
-double linear(double x){
-    return x;
-}
-
-// the derivative of the linear function
-double linearPrime(double x){
-    return 1;
 }
 
 // // Tutuaj można podmienić funkcjie aktywacji dla każdej z warstw (MIE ZAPOMNIJ O PRIME!!)
@@ -164,7 +154,7 @@ Matrix Policy::computeOutput(std::vector<double> input){
             H[n] = X.dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
             //H[n].print(std::cout);
         }else if(n == hidden_count){//! dla ostatniej warstwy
-            Y = H[n-1].dot(W[n]).add(B[n]).applyFunction(linear); // n = hidden_count
+            Y = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
             //Y.print(std::cout);
         }else{//! dla każdej innej warstwy
             H[n] = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
@@ -188,19 +178,19 @@ void Policy::learn(double q_correction,int action,std::vector<double> oldGameRep
         //std::cout<<"calculate dJdWB n:"<<n<<std::endl;
         if(n == -1){//! dla pierwszej warstwy
             D = dJdB.front().dot(W[n+2].transpose());
-            dJdB.insert(dJdB.begin(),D.multiply(X.dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
-            dJdW.insert(dJdW.begin(),X.transpose().dot(dJdB.front()));
+            dJdB.insert(dJdB.begin(), D.multiply(X.dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
+            dJdW.insert(dJdW.begin(), X.transpose().dot(dJdB.front()));
         }else if(n == hidden_count - 1){//! dla ostatniej warstwy
             D = Y2.subtract(Y);
-            dJdB.insert(dJdB.begin(),D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(linearPrime)));
-            dJdW.insert(dJdW.begin(),H[n].transpose().dot(dJdB.front()));
+            dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
         }else{//! dla każdej innej warstwy
             //std::cout<<"1"<<std::endl;
             D = dJdB.front().dot(W[n+2].transpose());
             //std::cout<<"2"<<std::endl;
-            dJdB.insert(dJdB.begin(),D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
             //std::cout<<"3"<<n<<std::endl;
-            dJdW.insert(dJdW.begin(),H[n].transpose().dot(dJdB.front()));
+            dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
             //std::cout<<"1"<<n<<std::endl;
         }
     }

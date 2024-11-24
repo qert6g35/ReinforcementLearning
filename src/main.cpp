@@ -14,7 +14,7 @@ int main(int argc, char *argv[]){
 
     DQN trainer;
 
-    Environment game; // init environment
+    Environment1D game; // init environment
     Policy agent = trainer.train();//uczymy nowego agenta
 
 

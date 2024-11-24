@@ -14,14 +14,37 @@ struct Observation {
     }
 };
 
-struct Environment {
+struct Environment2D
+{
+    const int actionsCount = 4;
+    const double actionsX[2] = {0, 1}; // left, right
+    const double actionsY[2] = {0, 1}; // left, right
+    int steps_done;
+    int positionX;
+    int positionY;
+    int lengthX;
+    int lengthY;
+
+    Environment2D(){
+        lengthX = 10;
+        lengthY = 10;
+
+        positionX = 0;
+        positionY = 0;
+
+        steps_done = 0;
+    }
+};
+
+
+struct Environment1D {
     const int actionsCount = 2;
     const double actions[2] = {0, 1}; // left, right
     int steps_done;
     int position;
     int length;
 
-    Environment(){
+    Environment1D(){
         length = 10;
         position = 0;
         steps_done = 0;
@@ -29,9 +52,12 @@ struct Environment {
 
     Observation step(double action){
         steps_done++;
+        int punishment = 0;
         if(action==actions[0]){
             if(position>0){
                 position--;
+            }else{
+                punishment = -1;
             }
         }
 
@@ -41,10 +67,12 @@ struct Environment {
             }
         }
 
+
         if(position==length)
             return Observation(length ,true);//+ distance_to_end_reward() + steps_done_penalty(), true);
         else
-            return Observation(0,false);//distance_to_end_reward() + steps_done_penalty(), false);
+            return Observation(punishment,false);//distance_to_end_reward() + steps_done_penalty(), false);
+
     }
 
     double distance_to_end_reward(){

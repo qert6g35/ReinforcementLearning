@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <assert.h>
+#include <cmath>
 
 /**
     Every method ends with "const" keyword which means that the object on which the method is called is never modified.
@@ -38,6 +39,7 @@ public:
     double sum() const;
     void print(std::ostream &flux) const;
     std::vector<double> getRow(int witchOne) const;
+    bool haveAnyNan() const;
 
 private:
     std::vector<std::vector<double>> array;

@@ -29,16 +29,16 @@ struct DQNMemoryUnit
 
 DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory,mt19937 gen){
     uniform_int_distribution<int> distrib(0, memory.size()-1);
-    int example = distrib(gen);//memory.size() - 1;
+    int example = distrib(gen);//memory.size() - 1;//
     //cout<<" e:"<<example<<" mem_size:"<<memory.size()<<endl;
     return memory[example];
 }
 
 
 struct DQN{
-    Environment game; // init environment
+    Environment1D game; // init environment
 
-    Policy agent = Policy(game.length, 5,4, game.actionsCount, 0.05);
+    Policy agent = Policy(game.length, 10,10, game.actionsCount, 0.01);
     Policy target_agent = agent.copy();
 
     std::vector<DQNMemoryUnit> memory;
@@ -46,12 +46,13 @@ struct DQN{
     double gamma = 0.8;
     double eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     double epsDecay = 0.995; // procent maleje TODO
-    int target_agent_update_freaquency = 50;
+    int target_agent_update_freaquency = 5;
     int target_agent_count_down = target_agent_update_freaquency;
+    int n_steps_in_one_go = 300;
     random_device rd;
     mt19937 gen = mt19937(rd());
 
-    int episode_n = 100;
+    int episode_n = 1000;
 
     Matrix odp1 = agent.computeOutput({game.getGameRepresentation()});
     Matrix odp2 = target_agent.computeOutput({game.getGameRepresentation()});
@@ -67,31 +68,29 @@ struct DQN{
             
             game.reset();
 
-            // int stepper = 0;
-            // while(!done){
-            //     stepper++;
-            //     game.render();
-            //     std::cout << "\r";
+            int stepper = 0;
+            while(!done){
+                stepper++;
+                game.render();
+                std::cout << "\r";
 
-            //     Matrix actions = agent.computeOutput({game.getGameRepresentation()});
-            //     actions.getMax( NULL, &action, NULL);
-            //     Observation fb = game.step(action);
-            //     done = fb.done;
-            //     //position = fb.position;
-            //     if(stepper > 30){
-            //         break;
-            //     }
-            //     usleep(25000);
-            // }
+                Matrix actions = agent.computeOutput({game.getGameRepresentation()});
+                actions.getMax( NULL, &action, NULL);
+                Observation fb = game.step(action);
+                done = fb.done;
+                //position = fb.position;
+                if(stepper > 30){
+                    break;
+                }
+                usleep(25000);
+            }
 
-            //game.reset();
+            game.reset();
 
-
-            //odp1 = agent.computeOutput({game.getGameRepresentation()});
-            //odp2 = target_agent.computeOutput({game.getGameRepresentation()});
-            //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
+            if(odp1.haveAnyNan())
+                cout <<"agent output:"<< odp1 <<"\n";
             done=false;
-            while(!done && steps<300){
+            while(!done && steps<n_steps_in_one_go){
                 steps++;
                 // save enviroment before takeing action
                 std::vector<double> oldGameRepresentation = game.getGameRepresentation();
@@ -127,12 +126,17 @@ struct DQN{
                     q_correction = learningEgxample.reward + gamma*max;
                 }
                 //Qaprox.print(cout);
-
+                cout<<"corection "<<q_correction<<" on action:"<< learningEgxample.action<<endl;
                 agent.learn(q_correction,learningEgxample.action,learningEgxample.game);
+                //agent.learn(-1,0,learningEgxample.game);
 
                 eps *= epsDecay;
                 if(target_agent_count_down == 0){
-                    target_agent.updateParameters(agent);
+                    if(agent.computeOutput(game.toGameRepresentation(0,game.length)).haveAnyNan()){
+                        agent.updateParameters(target_agent);
+                    }else{
+                        target_agent.updateParameters(agent);
+                    }
                     target_agent_count_down = target_agent_update_freaquency;
                 }else{
                     target_agent_count_down--;
@@ -140,12 +144,17 @@ struct DQN{
             }
             target_agent.updateParameters(agent);
             target_agent_count_down = target_agent_update_freaquency;
+
             //if(i%10 == 0 || i%10 == 1){
                 cout << "Episode " << i+1 << "/" << episode_n << "\t";
                 cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
             //}
-            if(steps == 300 && eps < 0.0001){
+            if(steps == n_steps_in_one_go && eps < 0.0001){
                 eps = 1.0;
+            }
+            if(steps == n_steps_in_one_go){
+                odp1 = agent.computeOutput({game.getGameRepresentation()});
+                cout <<"agent        "<< odp1<< endl;
             }
 
         }
@@ -153,9 +162,45 @@ struct DQN{
         //odp1 = agent.computeOutput({game.getGameRepresentation()});
         //odp2 = target_agent.computeOutput({game.getGameRepresentation()});
         //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
-        return agent;
+        return target_agent;
     }
 };
 
 
 #endif
+/*
+
+
+
+
+
+
+
+eksplodujący gradient, wartości zaczynają lecieć w nieskończoność + lub - 
+agent -2.34e+34 -9.606e+31 i leci const -81 na corection
+
+
+
+corection const = -1 na 0
+-0.008 -0.0917
+tutaj zawsze idziemy w prawo bo -
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/

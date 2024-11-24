@@ -221,12 +221,12 @@ void Matrix::print(std::ostream &flux) const
             }
             ss.str(std::string());
         }
-        flux << std::endl;
+        //flux << std::endl;
     }
 }
 
 void Matrix::getMax(int* y,int* x,  double* value) const{
-    double max_value = 0;
+    double max_value = -__DBL_MAX__;
     int w_max=0, h_max=0;
     for(int w = 0;w<width;w++){
         for(int h = 0;h<height;h++){
@@ -247,4 +247,18 @@ void Matrix::getMax(int* y,int* x,  double* value) const{
     if(value!=NULL){
         *value = max_value;
     }
+}
+
+bool Matrix::haveAnyNan() const{
+    for (int i=0 ; i<height ; i++){
+        for (int j=0 ; j<width ; j++){
+            if(std::isnan(array[i][j])){
+               return true; 
+            }
+            if(std::isnan(-array[i][j])){
+               return true; 
+            }
+        }
+    }
+    return false;
 }
