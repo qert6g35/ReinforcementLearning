@@ -226,7 +226,7 @@ void Matrix::print(std::ostream &flux) const
 }
 
 void Matrix::getMax(int* y,int* x,  double* value) const{
-    double max_value = -__DBL_MAX__;
+    double max_value = this->get(0,0);
     int w_max=0, h_max=0;
     for(int w = 0;w<width;w++){
         for(int h = 0;h<height;h++){

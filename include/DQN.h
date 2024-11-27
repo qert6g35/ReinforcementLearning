@@ -17,8 +17,9 @@ struct DQNMemoryUnit
     std::vector<double> game_next = std::vector<double>();
     int action;
     double reward; 
+    bool done;
 
-    DQNMemoryUnit(std::vector<double> ngame,std::vector<double> ngame_next,int naction,double nreward){
+    DQNMemoryUnit(std::vector<double> ngame,std::vector<double> ngame_next,int naction,double nreward,bool isDone){
         game = ngame;
         game_next = ngame_next;
         action = naction;
@@ -38,7 +39,7 @@ DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory,mt19937 gen)
 struct DQN{
     Environment1D game; // init environment
 
-    Policy agent = Policy(game.length, 10,10, game.actionsCount, 0.01);
+    Policy agent = Policy(game.length, 10,4, game.actionsCount, 0.05);
     Policy target_agent = agent.copy();
 
     std::vector<DQNMemoryUnit> memory;
@@ -52,7 +53,7 @@ struct DQN{
     random_device rd;
     mt19937 gen = mt19937(rd());
 
-    int episode_n = 1000;
+    int episode_n = 100;
 
     Matrix odp1 = agent.computeOutput({game.getGameRepresentation()});
     Matrix odp2 = target_agent.computeOutput({game.getGameRepresentation()});
@@ -110,7 +111,7 @@ struct DQN{
                 done = fb.done;
                 //
                 // saveing that moment in 
-                memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward));
+                memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward,done));
                 //DQNMemoryUnit learningEgxample = memory[memory.size() - 1];//choose_random_from_(memory,gen);
                 DQNMemoryUnit learningEgxample = choose_random_from_(memory,gen);
                 // get best action in next state
@@ -120,13 +121,13 @@ struct DQN{
                 // max <to> oszacowana wartosć Q tej najlepszej akcji
                 Qprox_next.getMax( NULL, NULL, &max);
                 // parametr QSA <to> R_s + wsp * wartość następnej najlepszej akcji
-                if(done == true){
+                if(learningEgxample.done == true){
                     q_correction = learningEgxample.reward;
                 }else{
                     q_correction = learningEgxample.reward + gamma*max;
                 }
                 //Qaprox.print(cout);
-                cout<<"corection "<<q_correction<<" on action:"<< learningEgxample.action<<endl;
+                //cout<<"corection "<<q_correction<<" on action:"<< learningEgxample.action<<endl;
                 agent.learn(q_correction,learningEgxample.action,learningEgxample.game);
                 //agent.learn(-1,0,learningEgxample.game);
 
@@ -135,6 +136,7 @@ struct DQN{
                     if(agent.computeOutput(game.toGameRepresentation(0,game.length)).haveAnyNan()){
                         agent.updateParameters(target_agent);
                     }else{
+                        cout<<"update target_agent";
                         target_agent.updateParameters(agent);
                     }
                     target_agent_count_down = target_agent_update_freaquency;
@@ -152,7 +154,7 @@ struct DQN{
             if(steps == n_steps_in_one_go && eps < 0.0001){
                 eps = 1.0;
             }
-            if(steps == n_steps_in_one_go){
+            if(steps == n_steps_in_one_go || true){
                 odp1 = agent.computeOutput({game.getGameRepresentation()});
                 cout <<"agent        "<< odp1<< endl;
             }

@@ -36,7 +36,7 @@ double ReLUPrime(double x){
 // the ReLU function
 double LeakyReLU(double x){
     if(x<0){
-        return 0.25*x;
+        return 0.1*x;
     }else{
         return x;
     }
@@ -45,7 +45,7 @@ double LeakyReLU(double x){
 // the derivative of the ReLU function
 double LeakyReLUPrime(double x){
     if(x<0){
-        return -0.25;
+        return 0.1;
     }else{
         return 1;
     }
@@ -182,6 +182,10 @@ void Policy::learn(double q_correction,int action,std::vector<double> oldGameRep
             dJdW.insert(dJdW.begin(), X.transpose().dot(dJdB.front()));
         }else if(n == hidden_count - 1){//! dla ostatniej warstwy
             D = Y2.subtract(Y);
+            std::cout<<Y2<<"|"<<Y<<"|"<<D<<std::endl;
+            if(Y.haveAnyNan() || Y2.haveAnyNan()){
+                0/0;
+            }
             dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
             dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
         }else{//! dla każdej innej warstwy
