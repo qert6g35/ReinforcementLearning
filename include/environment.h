@@ -20,19 +20,74 @@ struct Environment2D
     const double actionsX[2] = {0, 1}; // left, right
     const double actionsY[2] = {0, 1}; // left, right
     int steps_done;
-    int positionX;
-    int positionY;
-    int lengthX;
-    int lengthY;
+    int positionH;
+    int positionW;
+    int lengthH;
+    int lengthW;
 
     Environment2D(){
-        lengthX = 10;
-        lengthY = 10;
+        lengthH = 10;
+        lengthW = 10;
 
-        positionX = 0;
-        positionY = 0;
+        positionH = 0;
+        positionW = 0;
 
         steps_done = 0;
+    }
+
+    Observation step(int actionH,int actionW){
+        assert(actionH == 0 || actionH == 1);
+        assert(actionW == 0 || actionW == 1);
+        
+        steps_done++;
+        int punishment = 0;
+        if(actionH==0){
+            if(positionH>0){
+                positionH--;
+            }else{
+                punishment += -1;
+            }
+        }else{
+            if(positionH<lengthH - 1){
+                positionH++;
+            }
+        }
+        if(actionW==0){
+            if(positionW>0){
+                positionW--;
+            }else{
+                punishment += -1;
+            }
+        }else{
+            if(positionW<lengthW){
+                positionW++;
+            }
+        }
+        if(positionH==lengthH-1 && positionW==lengthW-1)
+            return Observation((lengthW + lengthH)/2 ,true);//+ distance_to_end_reward() + steps_done_penalty(), true);
+        else
+            return Observation(punishment,false);//distance_to_end_reward() + steps_done_penalty(), false);
+    }
+
+    void render(){
+        Matrix game(lengthH,lengthW);
+        game.set(positionH,positionW,1);
+        game.set(lengthH -1,lengthW - 1,2);
+        std::cout<<game;
+    }
+
+    std::vector<double> toGameRepresentation(int h,int w, int side_len){
+        std::vector<double> v(side_len*side_len, 0);
+        v[h * side_len + w] += 1;
+        v[side_len * side_len - 1] += 2;
+        return v;
+    }
+
+    std::vector<double> getGameRepresentation(){
+        std::vector<double> v(lengthH*lengthW, 0);
+        v[positionH * lengthW + lengthW] += 1;
+        v[lengthH * lengthW - 1] += 2;
+        return v;
     }
 };
 
@@ -51,24 +106,23 @@ struct Environment1D {
     }
 
     Observation step(double action){
+        assert(action == 0 || action == 1);
         steps_done++;
         int punishment = 0;
-        if(action==actions[0]){
+        if(action==0){
             if(position>0){
                 position--;
             }else{
                 punishment = -1;
             }
-        }
-
-        if(action==actions[1]){
-            if(position<length){
+        }else{
+            if(position<length-1){
                 position++;
             }
         }
 
 
-        if(position==length)
+        if(position==length-1)
             return Observation(length ,true);//+ distance_to_end_reward() + steps_done_penalty(), true);
         else
             return Observation(punishment,false);//distance_to_end_reward() + steps_done_penalty(), false);

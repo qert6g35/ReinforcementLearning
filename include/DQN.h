@@ -10,6 +10,7 @@
 #include "../include/policy.h"
 
 using namespace std;
+const bool show_output = false;
 
 struct DQNMemoryUnit
 {
@@ -59,6 +60,7 @@ struct DQN{
     Matrix odp2 = target_agent.computeOutput({game.getGameRepresentation()});
 
     Policy train(){
+        int done_counter = 0;
         //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
         cout << "Start training,  episodes:"<<episode_n<<endl;
         for (int i=0 ; i<episode_n ; i++){
@@ -70,25 +72,8 @@ struct DQN{
             game.reset();
 
             int stepper = 0;
-            while(!done){
-                stepper++;
-                game.render();
-                std::cout << "\r";
 
-                Matrix actions = agent.computeOutput({game.getGameRepresentation()});
-                actions.getMax( NULL, &action, NULL);
-                Observation fb = game.step(action);
-                done = fb.done;
-                //position = fb.position;
-                if(stepper > 30){
-                    break;
-                }
-                usleep(25000);
-            }
-
-            game.reset();
-
-            if(odp1.haveAnyNan())
+            if(odp1.haveAnyNan() && show_output)
                 cout <<"agent output:"<< odp1 <<"\n";
             done=false;
             while(!done && steps<n_steps_in_one_go){
@@ -136,7 +121,7 @@ struct DQN{
                     if(agent.computeOutput(game.toGameRepresentation(0,game.length)).haveAnyNan()){
                         agent.updateParameters(target_agent);
                     }else{
-                        cout<<"update target_agent";
+                        //cout<<"update target_agent";
                         target_agent.updateParameters(agent);
                     }
                     target_agent_count_down = target_agent_update_freaquency;
@@ -147,18 +132,46 @@ struct DQN{
             target_agent.updateParameters(agent);
             target_agent_count_down = target_agent_update_freaquency;
 
-            //if(i%10 == 0 || i%10 == 1){
+            if(show_output){
                 cout << "Episode " << i+1 << "/" << episode_n << "\t";
                 cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
-            //}
+            }
             if(steps == n_steps_in_one_go && eps < 0.0001){
                 eps = 1.0;
             }
-            if(steps == n_steps_in_one_go || true){
+            if(steps == n_steps_in_one_go && show_output){
                 odp1 = agent.computeOutput({game.getGameRepresentation()});
                 cout <<"agent        "<< odp1<< endl;
             }
             steps = 0;
+            done = false;
+            game.reset();
+            while(!done){
+                stepper++;
+                if(show_output){
+                    game.render();
+                    std::cout << "\r";
+                }
+                Matrix actions = target_agent.computeOutput({game.getGameRepresentation()});
+                actions.getMax( NULL, &action, NULL);
+                Observation fb = game.step(action);
+                done = fb.done;
+                //position = fb.position;
+                if(stepper > game.length+1){
+                    break;
+                }
+                if(show_output)
+                    usleep(25000);
+            }
+
+            if(done == true){
+                done_counter += 1;
+            }else{
+                done_counter = 0;
+            }
+            if(done_counter == 3){
+                break;
+            }
 
         }
 
