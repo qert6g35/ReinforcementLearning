@@ -84,13 +84,13 @@ struct Environment2D
             return Observation(punishment,false);//distance_to_end_reward() + steps_done_penalty(), false);
     }
 
-    void render(){
+    void render(bool erase = true){
         //Matrix game(lengthH,lengthW);
         //game.set(positionH,positionW,1);
         //game.set(lengthH -1,lengthW - 1,2);
         
-        
-        eraseLines(lengthH+1);
+        if(erase)
+            eraseLines(lengthH+1);
         for(int h = 0;h<lengthH;h++){
             for(int w = 0;w<lengthW;w++){
                 int val = 0;
@@ -135,6 +135,7 @@ struct Environment2D
 
         steps_done = 0;
     }
+
 };
 
 

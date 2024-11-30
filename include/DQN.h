@@ -10,7 +10,7 @@
 #include "../include/policy.h"
 
 using namespace std;
-const bool show_output = true;
+const bool show_output = false;
 
 struct DQNMemoryUnit
 {
@@ -27,14 +27,6 @@ struct DQNMemoryUnit
         reward = nreward;
     }
 };
-
-
-DQNMemoryUnit choose_random_from_(std::vector<DQNMemoryUnit> memory){
-    //uniform_int_distribution<int> distrib(0, memory.size()-1);
-    //int example = distrib(gen);//memory.size() - 1;//
-    //cout<<" e:"<<example<<" mem_size:"<<memory.size()<<endl;
-    return memory[(int)(rand() % memory.size())];
-}
 
 
 struct DQN{
@@ -98,10 +90,10 @@ struct DQN{
                 //Qaprox.print(cout);
                 Observation fb = game.step(action);
                 done = fb.done;
-                if(done){
-                    cout<<"GAME END pozH:"<<game.positionH<<" pozW:"<<game.positionW<<endl;
-                    //showBestChoicesFor(agent);
-                }
+                // if(done){
+                //     cout<<"GAME END pozH:"<<game.positionH<<" pozW:"<<game.positionW<<endl;
+                //     //showBestChoicesFor(agent);
+                // }
                 //
                 // saveing that moment in 
                 // if(show_output)
@@ -110,7 +102,7 @@ struct DQN{
 
                 memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward,done));
                 //DQNMemoryUnit learningEgxample = memory[memory.size() - 1];//choose_random_from_(memory,gen);
-                DQNMemoryUnit learningEgxample = choose_random_from_(memory);
+                DQNMemoryUnit learningEgxample = choose_random_from_();
 
                 //DQNMemoryUnit learningEgxample = DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward,done);
 
@@ -149,10 +141,10 @@ struct DQN{
                     target_agent_count_down--;
                 }
             }
-
-            cout << "Episode " << i+1 << "/" << episode_n << "\t";
-            cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
-
+            if(show_output){
+                cout << "Episode " << i+1 << "/" << episode_n << "\t";
+                cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
+            }
             target_agent.updateParameters(agent); // update target agent after every batch
             target_agent_count_down = target_agent_update_freaquency;
 
@@ -176,7 +168,8 @@ struct DQN{
                 done = fb.done;
                 //position = fb.position;
                 if(stepper > game.length()+1){
-                    cout<<"agent cant end game on its own"<<endl;
+                    if(show_output)
+                        cout<<"agent cant end game on its own"<<endl;
                     break;
                 }
                 // if(show_output)
@@ -218,6 +211,13 @@ struct DQN{
             std::cout<<std::endl;
         }
     }
+
+    DQNMemoryUnit choose_random_from_(){
+    //uniform_int_distribution<int> distrib(0, memory.size()-1);
+    //int example = distrib(gen);//memory.size() - 1;//
+    //cout<<" e:"<<example<<" mem_size:"<<memory.size()<<endl;
+    return memory[(int)(rand() % memory.size())];
+}
 };
 
 

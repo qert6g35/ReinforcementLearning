@@ -29,10 +29,12 @@ int main(int argc, char *argv[]){
     int action;// position = 
     game.reset();
     bool done = false;
+    bool help_me = false;
     while(!done){
         game.render();
         //std::cout << "\r";
-
+        if(!help_me)
+            help_me = true;
         Matrix actions = agent.computeOutput({game.getGameRepresentation()});
         actions.getMax( NULL, &action, NULL);
         Observation fb = game.step(action);
@@ -40,7 +42,7 @@ int main(int argc, char *argv[]){
         //done = false;
         //position = fb.position;
 
-        usleep(200000);
+        usleep(500000);
     }
 }
 
