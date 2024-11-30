@@ -169,6 +169,7 @@ Matrix Policy::computeOutput(std::vector<double> input){
 // back propagation and params update
 void Policy::learn(double q_correction,int action,std::vector<double> oldGameRepresentation,bool update_on_spot){ // row matrix
     Matrix Y2 = computeOutput(oldGameRepresentation);
+    //std::cout<<Y2;
     Y2.set(0,action,q_correction);
     // Loss J = 1/2 (expectedOutput - computedOutput)^2
     // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
@@ -183,6 +184,7 @@ void Policy::learn(double q_correction,int action,std::vector<double> oldGameRep
         }else if(n == hidden_count - 1){//! dla ostatniej warstwy
             D = Y2.subtract(Y);
             //std::cout<<Y2<<"|"<<Y<<"|"<<D<<std::endl;
+            //std::cout<<D<<std::endl;
             dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
             dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
         }else{//! dla każdej innej warstwy
@@ -204,6 +206,8 @@ void Policy::learn(double q_correction,int action,std::vector<double> oldGameRep
         dJdW.clear();
         dJdB.clear();
     }
+
+        
     // stara sieć
     //nB;
 }   // Matrix D2 = Y2.subtract(Y); // błąd drugiej warstwy

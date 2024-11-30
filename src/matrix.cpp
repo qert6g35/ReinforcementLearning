@@ -221,7 +221,7 @@ void Matrix::print(std::ostream &flux) const
             }
             ss.str(std::string());
         }
-        //flux << std::endl;
+        flux << std::endl;
     }
 }
 
