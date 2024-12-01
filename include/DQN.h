@@ -52,18 +52,21 @@ private:
     int n_steps_in_one_go;
     int episode_n;
     
+    bool use_memory = true;
+    bool use_target_agent = true;
+
 public:
 
     DQN();
 
-    Policy train();
+    Policy train(double* learning_time);
 
     bool collect_memory_step();
+    void learn_from_memory();
 
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
-    DQNMemoryUnit choose_random_from_();// chooseing random memorysample
-    //bool checkFor
+    DQNMemoryUnit choose_random_from_memory();// chooseing random memorysample
 };
 
 

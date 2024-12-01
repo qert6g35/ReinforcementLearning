@@ -3,6 +3,10 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
+#include <cassert>
+
+#include "../include/policy.h"
 
 struct Observation {
     double reward;
@@ -26,8 +30,8 @@ struct Environment2D
     int lengthW;
 
     Environment2D(){
-        lengthH = 5;
-        lengthW = 10;
+        lengthH = 4;
+        lengthW = 6;
 
         positionH = 0;
         positionW = 0;
@@ -88,7 +92,7 @@ struct Environment2D
         //Matrix game(lengthH,lengthW);
         //game.set(positionH,positionW,1);
         //game.set(lengthH -1,lengthW - 1,2);
-        
+        //std::cout<<"game lH:"<<lengthH<<" game lW:"<<lengthW<<std::endl;
         if(erase)
             eraseLines(lengthH+1);
         for(int h = 0;h<lengthH;h++){
@@ -134,6 +138,29 @@ struct Environment2D
         positionW = 0;
 
         steps_done = 0;
+    }
+
+    bool check_if_good_enougth(Policy the_agent,bool show_process){
+        reset();
+        int action = 0, stepper = 0;
+        bool help_me = false;
+        do{
+            if(show_process){
+                render(help_me);
+                //std::cout << "\r";
+                if(!help_me)
+                    help_me = true;
+                usleep(500000);
+            }
+            stepper++;
+            if(stepper > length()+1){
+                return false;
+            }
+            the_agent.computeOutput({getGameRepresentation()}).getMax( NULL, &action, NULL);
+        }while(!step(action).done);
+        if(show_process)
+            render(true);
+        return true;
     }
 
 };
