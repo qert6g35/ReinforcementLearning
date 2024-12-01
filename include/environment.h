@@ -4,19 +4,6 @@
 #include <string>
 #include <iostream>
 
-void eraseLines(int count) {
-    if (count > 0) {
-        std::cout << "\x1b[2K"; // Delete current line
-        // i=1 because we included the first line
-        for (int i = 1; i < count; i++) {
-            std::cout
-            << "\x1b[1A" // Move cursor up one
-            << "\x1b[2K"; // Delete the entire line
-        }
-        std::cout << "\r"; // Resume the cursor at beginning of line
-    }
-}
-
 struct Observation {
     double reward;
     bool done;
@@ -40,7 +27,7 @@ struct Environment2D
 
     Environment2D(){
         lengthH = 5;
-        lengthW = 5;
+        lengthW = 10;
 
         positionH = 0;
         positionW = 0;
@@ -82,6 +69,19 @@ struct Environment2D
             return Observation(lengthW + lengthH ,true);//+ distance_to_end_reward() + steps_done_penalty(), true);
         else
             return Observation(punishment,false);//distance_to_end_reward() + steps_done_penalty(), false);
+    }
+
+    void eraseLines(int count) {
+        if (count > 0) {
+            std::cout << "\x1b[2K"; // Delete current line
+            // i=1 because we included the first line
+            for (int i = 1; i < count; i++) {
+                std::cout
+                << "\x1b[1A" // Move cursor up one
+                << "\x1b[2K"; // Delete the entire line
+            }
+            std::cout << "\r"; // Resume the cursor at beginning of line
+        }
     }
 
     void render(bool erase = true){

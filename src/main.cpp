@@ -12,7 +12,7 @@ using namespace std;
 int main(int argc, char *argv[]){
     srand (time(NULL)); // to generate random weights
 
-    DQN trainer;
+    auto trainer = DQN();
 
     Environment2D game; // init environment
     // game.render();
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
     bool done = false;
     bool help_me = false;
     while(!done){
-        game.render();
+        game.render(help_me);
         //std::cout << "\r";
         if(!help_me)
             help_me = true;
@@ -44,6 +44,7 @@ int main(int argc, char *argv[]){
 
         usleep(500000);
     }
+    game.render();
 }
 
 /** MAIN

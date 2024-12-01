@@ -6,6 +6,7 @@
 #include <vector>
 #include <assert.h>
 #include <cmath>
+#include <stdlib.h>
 
 /**
     Every method ends with "const" keyword which means that the object on which the method is called is never modified.

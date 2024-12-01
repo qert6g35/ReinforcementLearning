@@ -89,6 +89,8 @@ std::vector<Matrix> Policy::getW() const{
 std::vector<Matrix> Policy::getB() const{
     return B;
 }
+Policy::Policy(){
+}
 
 Policy::Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB){
     learningRate = n_learningRate;

@@ -25,7 +25,7 @@ private:
     std::vector<Matrix> dJdW, dJdB;
 
 public:
-
+    Policy();
     Policy(int inputSize, int hidden_size,int hidden_count, int outputSize,double learning_rate);
     Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB);
 
