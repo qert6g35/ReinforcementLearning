@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include "../include/environment.h"
-#include "../include/policy.h"
 #include "../include/DQN.h"
 
 using namespace std;
