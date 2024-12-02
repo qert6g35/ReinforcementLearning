@@ -51,6 +51,7 @@ private:
     int target_agent_count_down;
     int n_steps_in_one_go;
     int episode_n;
+    double learning_rate = 0.05;
 
 public:
 

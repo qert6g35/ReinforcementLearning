@@ -33,7 +33,7 @@ struct Environment2D
         if(H > 0){
             lengthH = H;
         }else{
-            lengthH = 10;
+            lengthH = 5;
         }
         if(W > 0){
             lengthH = W;

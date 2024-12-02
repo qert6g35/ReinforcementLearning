@@ -1,7 +1,7 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    agent = Policy(game.length(), 10,8, game.actionsCount, 0.01);
+    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
     target_agent = agent.copy();
 
     gamma = 0.8;
@@ -23,7 +23,7 @@ void DQN::resetAgents(int hidden_count,int hidden_size){
         hidden_size = 10;
     }
     
-    agent = Policy(game.length(), hs,hc, game.actionsCount, 0.01);
+    agent = Policy(game.length(), hs,hc, game.actionsCount, learning_rate);
     if(use_target_agent){
         target_agent = agent.copy();
     }
@@ -89,15 +89,10 @@ Policy DQN::train(double* learning_time){
     cout << "Start training,  episodes:"<<episode_n<<endl;
     auto start_time = chrono::steady_clock::now();
     for (int i=0 ; i<episode_n ; i++){
-        int steps=0, maxIndex=0;
+        int steps=0;
         bool done=false;
-        Matrix Qaprox;
         
         game.reset();
-
-        int stepper = 0;
-
-        done=false;
         while(!done && steps<n_steps_in_one_go){
             steps++;
 
@@ -106,13 +101,20 @@ Policy DQN::train(double* learning_time){
             //agent.learn(10,0,learningEgxample.game);
             learn_from_memory();
             if(use_target_agent)
-                if(target_agent_count_down == 0 || done || steps>=n_steps_in_one_go){
-                    eps *= epsDecay;
+                if(target_agent_count_down == 0){
                     target_agent.updateParameters(agent);
                     target_agent_count_down = target_agent_update_freaquency;
                 }else{
                     target_agent_count_down--;
                 }
+            if(done|| steps>=n_steps_in_one_go){
+                done_counter += i;
+                eps *= epsDecay;
+                if(use_target_agent){
+                    target_agent.updateParameters(agent);
+                    target_agent_count_down = target_agent_update_freaquency;
+                }
+            }
         }
 
 
