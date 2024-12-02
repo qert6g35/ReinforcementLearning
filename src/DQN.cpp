@@ -7,10 +7,37 @@ DQN::DQN(){
     gamma = 0.8;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     epsDecay = 0.85; // procent maleje TODO
-    target_agent_update_freaquency = 25;
+    target_agent_update_freaquency = 30;
     target_agent_count_down = target_agent_update_freaquency;
-    n_steps_in_one_go = 500;
-    episode_n = 2000;
+    n_steps_in_one_go = 10 * game.length();
+    episode_n = 1000;
+}
+
+void DQN::resetAgents(int hidden_count,int hidden_size){
+    int hc = hidden_count;
+    if(hc <= 0){
+        hc = 8;
+    }
+    int hs = hidden_size;
+    if(hs <= 0){
+        hidden_size = 10;
+    }
+    
+    agent = Policy(game.length(), hs,hc, game.actionsCount, 0.01);
+    if(use_target_agent){
+        target_agent = agent.copy();
+    }
+    if(use_memory){
+        memory.clear();
+    }
+}
+
+void DQN::changeGame(int sizeH,int sizeW){
+    if(game.lengthH != sizeH || game.lengthW != sizeW){
+        game.lengthH = sizeH;
+        game.lengthW = sizeW;
+    }
+    game.reset();
 }
 
 bool DQN::collect_memory_step(){

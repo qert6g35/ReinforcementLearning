@@ -29,10 +29,17 @@ struct Environment2D
     int lengthH;
     int lengthW;
 
-    Environment2D(){
-        lengthH = 4;
-        lengthW = 6;
-
+    Environment2D(int H = 0,int W = 0){
+        if(H > 0){
+            lengthH = H;
+        }else{
+            lengthH = 10;
+        }
+        if(W > 0){
+            lengthH = W;
+        }else{
+            lengthW = 10;
+        }
         positionH = 0;
         positionW = 0;
 
@@ -140,7 +147,7 @@ struct Environment2D
         steps_done = 0;
     }
 
-    bool check_if_good_enougth(Policy the_agent,bool show_process){
+    int check_if_good_enougth(Policy the_agent,bool show_process){
         reset();
         int action = 0, stepper = 0;
         bool help_me = false;
@@ -154,13 +161,13 @@ struct Environment2D
             }
             stepper++;
             if(stepper > length()+1){
-                return false;
+                return 0;
             }
             the_agent.computeOutput({getGameRepresentation()}).getMax( NULL, &action, NULL);
         }while(!step(action).done);
         if(show_process)
             render(true);
-        return true;
+        return stepper;
     }
 
 };

@@ -51,9 +51,6 @@ private:
     int target_agent_count_down;
     int n_steps_in_one_go;
     int episode_n;
-    
-    bool use_memory = true;
-    bool use_target_agent = true;
 
 public:
 
@@ -67,6 +64,12 @@ public:
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
     DQNMemoryUnit choose_random_from_memory();// chooseing random memorysample
+
+    void resetAgents(int hidden_count = 8,int hidden_size = 10);
+    void changeGame(int sizeH,int sizeW);
+
+    bool use_memory = true;
+    bool use_target_agent = true;
 };
 
 
