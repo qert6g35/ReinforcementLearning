@@ -4,10 +4,11 @@ DQN::DQN(){
     agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
     target_agent = agent.copy();
 
+    learning_rate = 0.005;
     gamma = 0.8;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     epsDecay = 0.85; // procent maleje TODO
-    target_agent_update_freaquency = 30;
+    target_agent_update_freaquency = 50;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;

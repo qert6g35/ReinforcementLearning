@@ -38,7 +38,7 @@ struct Environment2D
         if(W > 0){
             lengthH = W;
         }else{
-            lengthW = 10;
+            lengthW = 6;
         }
         positionH = 0;
         positionW = 0;
