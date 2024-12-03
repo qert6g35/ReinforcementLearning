@@ -23,14 +23,14 @@ public:
     Matrix(int height, int width);
     Matrix(std::vector<std::vector<double> > const &array);
 
-    Matrix add(Matrix const &m) const; // addition
-    Matrix subtract(Matrix const &m) const; // subtraction
-    Matrix multiply(Matrix const &m) const; // hadamard product
+    Matrix add(Matrix const &m); // addition
+    Matrix subtract(Matrix const &m); // subtraction
+    Matrix multiply(Matrix const &m); //! hadamard product
     Matrix dot(Matrix const &m) const; // dot product
     Matrix transpose() const; // transposed matrix
     void getMax(int* y,int* x,  double* value) const; // get max value of matrix and its position
-    Matrix multiply(double const &value) const; // scalar multiplication
-    Matrix applyFunction(double (*function)(double)) const; // to apply a function to every element of the matrix
+    Matrix multiply(double const &value); // scalar multiplication
+    Matrix applyFunction(double (*function)(double)); // to apply a function to every element of the matrix
     
     Matrix copy() const;
     int getWidth() const;

@@ -12,8 +12,7 @@ using namespace std;
 
 void run_time_tests(){
     int n_samples = 10;
-    int instanceH = 4;
-    int instanceW = 4;
+    int instance_max_size = 2;
     int alg_types = 4;
 
     std::ofstream writeHere;
@@ -21,8 +20,8 @@ void run_time_tests(){
     
     auto trainer = DQN();
     double time = 0;
-    for(int iH = 2; iH <= instanceH; iH++){
-        for(int iW = 2; iW <= instanceW; iW++){
+    for(int iH = 2; iH <= instance_max_size; iH++){
+        for(int iW = 2; iW <= iH; iW++){
             trainer.changeGame(iH,iW);
             for(int dqnType = 0; dqnType < alg_types;dqnType++ ){
                 switch (dqnType)
@@ -57,7 +56,7 @@ void run_time_tests(){
                 for(int s=0;s<n_samples;s++){
                     trainer.resetAgents();
                     trainer.train(&time);
-                    writeHere<<time<<","<<iH<<","<<iW<<endl;
+                    writeHere<<iH<<","<<iW<<","<<time<<endl;
                 }
             }
         }
@@ -89,7 +88,7 @@ void show_how_program_works(){
 int main(int argc, char *argv[]){
     srand (time(NULL)); // to generate random weights
 
-    show_how_program_works();
+    run_time_tests();
 
     return 0;
 }

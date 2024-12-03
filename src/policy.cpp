@@ -186,8 +186,11 @@ void Policy::learn(double q_correction,int action,std::vector<double> oldGameRep
         }else if(n == hidden_count - 1){//! dla ostatniej warstwy
             D = Y2.subtract(Y);
             //std::cout<<Y2<<"|"<<Y<<"|"<<D<<std::endl;
+            //std::cout<<" my multiplie "<<std::endl;
             //std::cout<<D<<std::endl;
+            //std::cout<<H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)<<std::endl;
             dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            //std::cout<<dJdB.front()<<std::endl<<"___"<<std::endl;
             dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
         }else{//! dla każdej innej warstwy
             //std::cout<<"1"<<std::endl;

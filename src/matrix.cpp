@@ -18,73 +18,68 @@ Matrix::Matrix(std::vector<std::vector<double> > const &array)
     this->array = array;
 }
 
-Matrix Matrix::multiply(double const &value) const
+Matrix Matrix::multiply(double const &value)
 {
-	Matrix result(height, width);
     int i,j;
 
     for (i=0 ; i<height ; i++)
     {
         for (j=0 ; j<width ; j++)
         {
-            result.array[i][j] = array[i][j] * value;
+            array[i][j] *= value;
         }
     }
-
-    return result;
+    
+    return *this;
 }
 
-Matrix Matrix::add(Matrix const &m) const
+Matrix Matrix::add(Matrix const &m)
 {
     assert(height==m.height && width==m.width);
-
-    Matrix result(height, width);
     int i,j;
 
     for (i=0 ; i<height ; i++)
     {
         for (j=0 ; j<width ; j++)
         {
-            result.array[i][j] = array[i][j] + m.array[i][j];
+            array[i][j] += m.array[i][j];
         }
     }
 
-    return result;
+    return *this;
 }
 
-Matrix Matrix::subtract(Matrix const &m) const
+Matrix Matrix::subtract(Matrix const &m)
 {
 	assert(height==m.height && width==m.width);
 
-    Matrix result(height, width);
+    //Matrix result(height, width);
     int i,j;
 
     for (i=0 ; i<height ; i++)
     {
         for (j=0 ; j<width ; j++)
         {
-            result.array[i][j] = array[i][j] - m.array[i][j];
+            array[i][j] -= m.array[i][j];
         }
     }
 
-    return result;
+    return *this;
 }
 
-Matrix Matrix::multiply(Matrix const &m) const
+Matrix Matrix::multiply(Matrix const &m)
 {
     assert(height==m.height && width==m.width);
-
-    Matrix result(height, width);
     int i,j;
 
     for (i=0 ; i<height ; i++)
     {
         for (j=0 ; j<width ; j++)
         {
-            result.array[i][j] = array[i][j] * m.array[i][j];
+            array[i][j] *= m.array[i][j];
         }
     }
-    return result;
+    return *this;
 }
 
 Matrix Matrix::dot(Matrix const &m) const
@@ -138,19 +133,18 @@ Matrix Matrix::transpose() const
     return result;
 }
 
-Matrix Matrix::applyFunction(double (*function)(double)) const
+Matrix Matrix::applyFunction(double (*function)(double))
 {
-    Matrix result(height, width);
     int i,j;
 
     for (i=0 ; i<height ; i++)
     {
         for (j=0 ; j<width ; j++){
-            result.array[i][j] = (*function)(array[i][j]);
+            array[i][j] = (*function)(array[i][j]);
         }
     }
 ;
-    return result;
+    return *this;
 }
 
 int Matrix::getWidth() const{;
