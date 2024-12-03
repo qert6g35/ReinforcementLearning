@@ -57,7 +57,7 @@ public:
 
     DQN();
 
-    Policy train(double* learning_time);
+    Policy train(double* learning_time,int* steps_done);
 
     bool collect_memory_step();
     void learn_from_memory();

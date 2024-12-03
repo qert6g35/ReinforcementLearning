@@ -23,14 +23,12 @@ void DQN::resetAgents(int hidden_count,int hidden_size){
     if(hs <= 0){
         hidden_size = 10;
     }
-    
+    n_steps_in_one_go = 10 * game.length();
     agent = Policy(game.length(), hs,hc, game.actionsCount, learning_rate);
     if(use_target_agent){
         target_agent = agent.copy();
     }
-    if(use_memory){
-        memory.clear();
-    }
+    memory.clear();
 }
 
 void DQN::changeGame(int sizeH,int sizeW){
@@ -84,10 +82,11 @@ void DQN::learn_from_memory(){
     agent.learn(q_correction,learningExample.action,learningExample.game);
 }
 
-Policy DQN::train(double* learning_time){
+Policy DQN::train(double* learning_time,int* steps_done){
     int done_counter = 0;
     //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
-    cout << "Start training,  episodes:"<<episode_n<<endl;
+    if(show_output)
+        cout << "Start training,  episodes:"<<episode_n<<endl;
     auto start_time = chrono::steady_clock::now();
     for (int i=0 ; i<episode_n ; i++){
         int steps=0;
@@ -109,7 +108,7 @@ Policy DQN::train(double* learning_time){
                     target_agent_count_down--;
                 }
             if(done|| steps>=n_steps_in_one_go){
-                done_counter += i;
+                done_counter += steps;
                 eps *= epsDecay;
                 if(use_target_agent){
                     target_agent.updateParameters(agent);
@@ -128,10 +127,10 @@ Policy DQN::train(double* learning_time){
             eps = 1.0;
         }
         if(show_output){
-            showBestChoicesFor(target_agent);
+            showBestChoicesFor(agent);
         }
 
-        if(game.check_if_good_enougth(target_agent,show_output)){
+        if(game.check_if_good_enougth(agent,show_output)){
             break;
         }
     }
@@ -143,7 +142,9 @@ Policy DQN::train(double* learning_time){
         cout<<" Training took:"<<exec_time.count() / 1000.0<<"s"<<endl;
     if(learning_time != NULL)
         *learning_time = exec_time.count() / 1000.0;
-    return target_agent;
+    if(steps_done != NULL)
+        *steps_done = done_counter;
+    return agent;
 }
 
 void DQN::showBestChoicesFor(Policy agent){ 
