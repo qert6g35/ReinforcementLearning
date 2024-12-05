@@ -1,5 +1,7 @@
 #include "../include/policy.h"
 
+//! użyć mniejszej precyzji mniej niż 32Float
+
 // used to init random weights and biases
 double random(double x){
     return (double)(rand() % 10000 + 1)/10000-0.5;

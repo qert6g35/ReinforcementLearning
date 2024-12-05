@@ -157,19 +157,21 @@ void show_how_program_works(){
 int main(int argc, char *argv[]){
     srand (time(NULL)); // to generate random weights
 
-    finish_time_tests(8);
-    run_time_tests(9,8);
+    // finish_time_tests(8);
+    // run_time_tests(9,8);
+    show_how_program_works();
     
     return 0;
 }
 
 /** MAIN
- * 
+ * ! zastanów się, czy nie chcemy użyć np TensorFlow czy innej biblioteki do zastąpienia Polityki
  *   
- *      
- *TODO Zrozumiec/rozpisać jak tak naprawdę działa zaimplementowany algorytm uczenia aproxymatora tablicy Q   
- *TODO naprawić TODO w DQN
- *TODO      
+ *   drobno vs gruboziarnistość
+ * 
+ * w grubo: wątki vs procesy   
+ *TODO         rozproszoność (procesy) vs równoległość (threads) w ramach efektywności
+ *TODO      sprawdzić czas generacji nowych sieci
  *TODO 
  *TODO 
  * 
