@@ -9,10 +9,10 @@
 #include "../include/policy.h"
 
 struct Observation {
-    double reward;
+    float reward;
     bool done;
 
-    Observation(double reward, bool done){
+    Observation(float reward, bool done){
         this->reward = reward;
         this->done = done;
     }
@@ -22,7 +22,7 @@ struct Environment2D
 {
     const int actionsCount = 4;
     const int actions[4] = {0,1,2,3}; // left, right
-    //const double actionsY[2] = {0, 1}; // left, right
+    //const float actionsY[2] = {0, 1}; // left, right
     int steps_done;
     int positionH;
     int positionW;
@@ -33,12 +33,12 @@ struct Environment2D
         if(H > 0){
             lengthH = H;
         }else{
-            lengthH = 5;
+            lengthH = 9;
         }
         if(W > 0){
             lengthH = W;
         }else{
-            lengthW = 6;
+            lengthW = 9;
         }
         positionH = 0;
         positionW = 0;
@@ -120,16 +120,16 @@ struct Environment2D
         //std::cout<<"rendering, posH:"<<positionH<<" posW:"<<positionW;
     }
 
-    std::vector<double> toGameRepresentation(int h,int w){
-        std::vector<double> v(lengthW*lengthH, 0);
+    std::vector<float> toGameRepresentation(int h,int w){
+        std::vector<float> v(lengthW*lengthH, 0);
         v[h * lengthW + w] += 1;
         v[lengthH * lengthW - 1] += 2;
         return v;
     }
 
-    std::vector<double> getGameRepresentation(){
+    std::vector<float> getGameRepresentation(){
         //std::cout<<"pre get game";
-        std::vector<double> v(lengthH*lengthW, 0);
+        std::vector<float> v(lengthH*lengthW, 0);
         v[positionH * lengthW + positionW] += 1;
         v[lengthH * lengthW - 1] += 2;
         //std::cout<<"post get game"<<std::endl;
@@ -175,7 +175,7 @@ struct Environment2D
 
 struct Environment1D {
     const int actionsCount = 2;
-    const double actions[2] = {0, 1}; // left, right
+    const float actions[2] = {0, 1}; // left, right
     int steps_done;
     int position;
     int length;
@@ -186,7 +186,7 @@ struct Environment1D {
         steps_done = 0;
     }
 
-    Observation step(double action){
+    Observation step(float action){
         assert(action == 0 || action == 1);
         steps_done++;
         int punishment = 0;
@@ -214,12 +214,12 @@ struct Environment1D {
     //     return length;
     // }
 
-    double distance_to_end_reward(){
-        return (double)position / 2;
+    float distance_to_end_reward(){
+        return (float)position / 2;
     }
 
-    double steps_done_penalty(){
-        return - (double)steps_done * (1/(double)length/15.0);
+    float steps_done_penalty(){
+        return - (float)steps_done * (1/(float)length/15.0);
     }
 
     int reset(){
@@ -236,14 +236,14 @@ struct Environment1D {
         std::cout << "]" << std::flush;
     }
 
-    std::vector<double> toGameRepresentation(int n, int max){
-        std::vector<double> v(max, 0);
+    std::vector<float> toGameRepresentation(int n, int max){
+        std::vector<float> v(max, 0);
         v[n] = 1;
         return v;
     }
 
-    std::vector<double> getGameRepresentation(){
-        std::vector<double> v(length, 0);
+    std::vector<float> getGameRepresentation(){
+        std::vector<float> v(length, 0);
         v[position] = 1;
         return v;
     }
@@ -254,10 +254,10 @@ struct Environment1D {
 
 // old problem 
 // struct Observation {
-//     double reward;
+//     float reward;
 //     bool done;
 
-//     Observation(double reward, bool done){
+//     Observation(float reward, bool done){
 //         this->reward = reward;
 //         this->done = done;
 //     }
@@ -265,7 +265,7 @@ struct Environment1D {
 
 // struct Environment {
 //     const int actionsCount = 2;
-//     const double actions[2] = {0, 1}; // left, right
+//     const float actions[2] = {0, 1}; // left, right
 //     int steps_done;
 //     int position;
 //     int length;
@@ -276,7 +276,7 @@ struct Environment1D {
 //         steps_done = 0;
 //     }
 
-//     Observation step(double action){
+//     Observation step(float action){
 //         steps_done++;
 //         if(action==actions[0]){
 //             if(position>0){
@@ -296,12 +296,12 @@ struct Environment1D {
 //             return Observation(distance_to_end_reward() + steps_done_penalty(), false);//! originaly was reward = 0
 //     }
 
-//     double distance_to_end_reward(){
-//         return (double)position / 2;
+//     float distance_to_end_reward(){
+//         return (float)position / 2;
 //     }
 
-//     double steps_done_penalty(){
-//         return - (double)steps_done * (1/(double)length/2);
+//     float steps_done_penalty(){
+//         return - (float)steps_done * (1/(float)length/2);
 //     }
 
 //     int reset(){
@@ -318,14 +318,14 @@ struct Environment1D {
 //         std::cout << "]" << std::flush;
 //     }
 
-//     std::vector<double> toGameRepresentation(int n, int max){
-//         std::vector<double> v(max, 0);
+//     std::vector<float> toGameRepresentation(int n, int max){
+//         std::vector<float> v(max, 0);
 //         v[n] = 1;
 //         return v;
 //     }
 
-//     std::vector<double> getGameRepresentation(){
-//         std::vector<double> v(length, 0);
+//     std::vector<float> getGameRepresentation(){
+//         std::vector<float> v(length, 0);
 //         v[position] = 1;
 //         return v;
 //     }

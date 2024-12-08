@@ -21,29 +21,29 @@ class Matrix
 public:
     Matrix();
     Matrix(int height, int width);
-    Matrix(std::vector<std::vector<double> > const &array);
+    Matrix(std::vector<std::vector<float> > const &array);
 
     Matrix add(Matrix const &m); // addition
     Matrix subtract(Matrix const &m); // subtraction
     Matrix multiply(Matrix const &m); //! hadamard product
     Matrix dot(Matrix const &m) const; // dot product
     Matrix transpose() const; // transposed matrix
-    void getMax(int* y,int* x,  double* value) const; // get max value of matrix and its position
-    Matrix multiply(double const &value); // scalar multiplication
-    Matrix applyFunction(double (*function)(double)); // to apply a function to every element of the matrix
+    void getMax(int* y,int* x,  float* value) const; // get max value of matrix and its position
+    Matrix multiply(float const &value); // scalar multiplication
+    Matrix applyFunction(float (*function)(float)); // to apply a function to every element of the matrix
     
     Matrix copy() const;
     int getWidth() const;
     int getHeight() const;
-    double get(int i, int j) const;
-    void set(int i, int j,double v);
-    double sum() const;
+    float get(int i, int j) const;
+    void set(int i, int j,float v);
+    float sum() const;
     void print(std::ostream &flux) const;
-    std::vector<double> getRow(int witchOne) const;
+    std::vector<float> getRow(int witchOne) const;
     bool haveAnyNan() const;
 
 private:
-    std::vector<std::vector<double>> array;
+    std::vector<std::vector<float>> array;
     int height;
     int width;
 };

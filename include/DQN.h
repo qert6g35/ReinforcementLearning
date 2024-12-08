@@ -15,13 +15,13 @@ const bool show_output = false;
 
 struct DQNMemoryUnit
 {
-    std::vector<double> game = std::vector<double>();
-    std::vector<double> game_next = std::vector<double>();
+    std::vector<float> game = std::vector<float>();
+    std::vector<float> game_next = std::vector<float>();
     int action;
-    double reward; 
+    float reward; 
     bool done;
 
-    DQNMemoryUnit(std::vector<double> ngame,std::vector<double> ngame_next,int naction,double nreward,bool isDone){
+    DQNMemoryUnit(std::vector<float> ngame,std::vector<float> ngame_next,int naction,float nreward,bool isDone){
         game = ngame;
         game_next = ngame_next;
         action = naction;
@@ -44,14 +44,14 @@ private:
     std::vector<DQNMemoryUnit> memory;
     std::chrono::duration<double,std::milli> exec_time;
 
-    double gamma;
-    double eps; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
-    double epsDecay; // procent maleje TODO
+    float gamma;
+    float eps; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
+    float epsDecay; // procent maleje TODO
     int target_agent_update_freaquency;
     int target_agent_count_down;
     int n_steps_in_one_go;
     int episode_n;
-    double learning_rate = 0.01;
+    float learning_rate = 0.01;
 
 public:
 

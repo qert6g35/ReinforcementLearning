@@ -7,10 +7,10 @@ Matrix::Matrix(int height, int width)
 {
     this->height = height;
     this->width = width;
-    this->array = std::vector<std::vector<double> >(height, std::vector<double>(width));
+    this->array = std::vector<std::vector<float> >(height, std::vector<float>(width));
 }
 
-Matrix::Matrix(std::vector<std::vector<double> > const &array)
+Matrix::Matrix(std::vector<std::vector<float> > const &array)
 {
     assert(array.size()!=0);
     this->height = array.size();
@@ -18,7 +18,7 @@ Matrix::Matrix(std::vector<std::vector<double> > const &array)
     this->array = array;
 }
 
-Matrix Matrix::multiply(double const &value)
+Matrix Matrix::multiply(float const &value)
 {
     int i,j;
 
@@ -87,7 +87,7 @@ Matrix Matrix::dot(Matrix const &m) const
     assert(width==m.height);
 
     int i,j,h, mwidth = m.width;
-    double w=0;
+    float w=0;
 
     Matrix result(height, mwidth);
 
@@ -109,9 +109,9 @@ Matrix Matrix::dot(Matrix const &m) const
 
 Matrix Matrix::copy() const{
     std::cout<<"?";
-    std::vector<std::vector<double>> newArray = std::vector<std::vector<double>>(height); 
+    std::vector<std::vector<float>> newArray = std::vector<std::vector<float>>(height); 
     for(int h = 0; h<height; h++){
-        newArray[h] = std::vector<double>(width);
+        newArray[h] = std::vector<float>(width);
         for(int w = 0; w<width;w++){
             std::cout<<"?";
             newArray[h][w] = array[h][w];
@@ -133,7 +133,7 @@ Matrix Matrix::transpose() const
     return result;
 }
 
-Matrix Matrix::applyFunction(double (*function)(double))
+Matrix Matrix::applyFunction(float (*function)(float))
 {
     int i,j;
 
@@ -155,26 +155,26 @@ int Matrix::getHeight() const{
     return height;
 }
 
-std::vector<double> Matrix::getRow(int witchOne) const{
+std::vector<float> Matrix::getRow(int witchOne) const{
     assert(witchOne>=0);
     assert(witchOne<height);
     return array[witchOne];
 }
 
-double Matrix::get(int h, int w) const{// First heigth than width (y,x)
+float Matrix::get(int h, int w) const{// First heigth than width (y,x)
     assert(h>=0 &&  w>=0);
     assert(h<height && w<width);
     return array[h][w];
 }
 
-void Matrix::set(int h, int w,double v){
+void Matrix::set(int h, int w,float v){
     assert(h>=0 &&  w>=0);
     assert(h<height && w<width);
     array[h][w] = v;
 }
 
-double Matrix::sum() const {
-    double sum = 0.0;
+float Matrix::sum() const {
+    float sum = 0.0;
     for (int i=0 ; i<height ; i++){
         for (int j=0 ; j<width ; j++){
             sum += array[i][j];
@@ -219,8 +219,8 @@ void Matrix::print(std::ostream &flux) const
     }
 }
 
-void Matrix::getMax(int* y,int* x,  double* value) const{
-    double max_value = this->get(0,0);
+void Matrix::getMax(int* y,int* x,  float* value) const{
+    float max_value = this->get(0,0);
     int w_max=0, h_max=0;
     for(int w = 0;w<width;w++){
         for(int h = 0;h<height;h++){

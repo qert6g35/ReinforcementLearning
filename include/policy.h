@@ -14,7 +14,7 @@
 class Policy{
 private:
     int hidden_count;
-    double learningRate;
+    float learningRate;
 
     //  Wagi i bajasy
     std::vector<Matrix> W,B;
@@ -26,18 +26,18 @@ private:
 
 public:
     Policy();
-    Policy(int inputSize, int hidden_size,int hidden_count, int outputSize,double learning_rate);
-    Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB);
+    Policy(int inputSize, int hidden_size,int hidden_count, int outputSize,float learning_rate);
+    Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB);
 
     Policy copy() const;
-    Matrix computeOutput(std::vector<double> input);
-    void learn(double q_correction,int action,std::vector<double> oldGameRepresentation, bool update_on_spot = true);
+    Matrix computeOutput(std::vector<float> input);
+    void learn(float q_correction,int action,std::vector<float> oldGameRepresentation, bool update_on_spot = true);
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
     void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);
     void updateParameters(Policy actual_policy);
-    // double activate(double value,int n_layer) const;
-    // double activatePrime(double value,int n_layer) const;
+    // float activate(float value,int n_layer) const;
+    // float activatePrime(float value,int n_layer) const;
 };
 
 

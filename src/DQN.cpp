@@ -40,10 +40,10 @@ void DQN::changeGame(int sizeH,int sizeW){
 }
 
 bool DQN::collect_memory_step(){
-    std::vector<double> oldGameRepresentation = game.getGameRepresentation();
+    std::vector<float> oldGameRepresentation = game.getGameRepresentation();
     int action = 0;
     // take random actions sometimes to allow game exploration
-    if(((double) rand() / RAND_MAX) < eps){
+    if(((float) rand() / RAND_MAX) < eps){
         // if(show_output)
         //     cout<<"pick_random_action"<<endl;
         action = rand()%game.actionsCount;
@@ -67,7 +67,7 @@ bool DQN::collect_memory_step(){
 
 void DQN::learn_from_memory(){
     DQNMemoryUnit learningExample = choose_random_from_memory();
-    double q_correction=0, max=0;
+    float q_correction=0, max=0;
     if(use_target_agent){
         target_agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
     }else{

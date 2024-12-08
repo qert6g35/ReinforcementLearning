@@ -3,22 +3,22 @@
 //! użyć mniejszej precyzji mniej niż 32Float
 
 // used to init random weights and biases
-double random(double x){
-    return (double)(rand() % 10000 + 1)/10000-0.5;
+float random(float x){
+    return (float)(rand() % 10000 + 1)/10000-0.5;
 }
 
 // the sigmoid function
-double sigmoid(double x){
+float sigmoid(float x){
     return 1/(1+exp(-x));
 }
 
 // the derivative of the sigmoid function
-double sigmoidePrime(double x){
+float sigmoidePrime(float x){
     return exp(-x)/(pow(1+exp(-x), 2));
 }
 
 // the ReLU function
-double ReLU(double x){
+float ReLU(float x){
     if(x<0){
         return 0;
     }else{
@@ -27,7 +27,7 @@ double ReLU(double x){
 }
 
 // the derivative of the ReLU function
-double ReLUPrime(double x){
+float ReLUPrime(float x){
     if(x<0){
         return 0;
     }else{
@@ -36,7 +36,7 @@ double ReLUPrime(double x){
 }
 
 // the ReLU function
-double LeakyReLU(double x){
+float LeakyReLU(float x){
     if(x<0){
         return 0.1*x;
     }else{
@@ -45,7 +45,7 @@ double LeakyReLU(double x){
 }
 
 // the derivative of the ReLU function
-double LeakyReLUPrime(double x){
+float LeakyReLUPrime(float x){
     if(x<0){
         return 0.1;
     }else{
@@ -54,7 +54,7 @@ double LeakyReLUPrime(double x){
 }
 
 // // Tutuaj można podmienić funkcjie aktywacji dla każdej z warstw (MIE ZAPOMNIJ O PRIME!!)
-// double Policy::activate(double value,int n_layer) const{
+// float Policy::activate(float value,int n_layer) const{
 //     if(n_layer == 0){
 //         return sigmoid(value);
 //     }else if(n_layer != hidden_count){
@@ -64,7 +64,7 @@ double LeakyReLUPrime(double x){
 //     }
 // }
 
-// std::function<double(double)> Policy::activatePrime(double value,int n_layer) const{
+// std::function<float(float)> Policy::activatePrime(float value,int n_layer) const{
 //     if(n_layer == 0){
 //         return sigmoidePrime;
 //     }else if(n_layer != hidden_count){
@@ -94,7 +94,7 @@ std::vector<Matrix> Policy::getB() const{
 Policy::Policy(){
 }
 
-Policy::Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB){
+Policy::Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB){
     learningRate = n_learningRate;
     hidden_count = n_hidden_count;
 
@@ -103,7 +103,7 @@ Policy::Policy(int n_hidden_count,double n_learningRate,std::vector<Matrix> nW,s
     B = nB;
 }
 
-Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,double learning_rate){
+Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,float learning_rate){
     learningRate = learning_rate;
     hidden_count = _hidden_count;
 
@@ -136,7 +136,7 @@ Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,
     // B1 = B1.applyFunction(random);
     // B2 = B2.applyFunction(random);
     }
-    //std::cout<<"We Policy(int n_hidden_count,double n_learningRate,Matrix W,Matrix H)will expect "<<H.size()<<" hidden layers"<<std::endl;
+    //std::cout<<"We Policy(int n_hidden_count,float n_learningRate,Matrix W,Matrix H)will expect "<<H.size()<<" hidden layers"<<std::endl;
     //std::cout<<"We have "<<W.size()<<" w and b"<<std::endl;
 }
 
@@ -148,7 +148,7 @@ Policy Policy::copy() const{
 
 
 // forward propagation
-Matrix Policy::computeOutput(std::vector<double> input){
+Matrix Policy::computeOutput(std::vector<float> input){
     //std::cout<<"compute output for: "<<std::endl;
     X = Matrix({input}); // row matrix
     //X.print(std::cout);
@@ -171,7 +171,7 @@ Matrix Policy::computeOutput(std::vector<double> input){
 }   
 
 // back propagation and params update
-void Policy::learn(double q_correction,int action,std::vector<double> oldGameRepresentation,bool update_on_spot){ // row matrix
+void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_on_spot){ // row matrix
     Matrix Y2 = computeOutput(oldGameRepresentation);
     //std::cout<<Y2;
     Y2.set(0,action,q_correction);
