@@ -122,7 +122,8 @@ int main(int argc, char *argv[]){
 
     // finish_time_tests(8);
     // run_time_tests(9,8);
-    testSingleExaple();
+    //testSingleExaple();
+    show_how_program_works();
     
     return 0;
 }
@@ -131,10 +132,37 @@ int main(int argc, char *argv[]){
  * //! zastanów się, czy nie chcemy użyć np TensorFlow czy innej biblioteki do zastąpienia Polityki
  *   
  *   drobno vs gruboziarnistość
- *TODO w drobno:
+ *TODO w drobno: (komunikacja wystepuje bardzo często między wątkami)
  *TODO 
+        <jak chcemy to zrealizować?>
+        ** wątki spawnowane mają za zadanie wykonać funkcję learn_from_memory(); (odpowiednio blokując się na wzajem na mutexie podczas updateowania wag.)
+    
  *TODO 
- *TODO w grubo: wątki vs procesy   
+ *TODO w grubo: (komunikacja występuje rzadziej)
+ *TODO      
+      wątki - (tutaj chcemy jak najbardziej skożystać ze wspólnej pamięci) 
+    ** w0 Parameter Server 
+    ** wątki zbierające Tracey i uczące, każdy osobnego agenta
+    ** memory przechowywane w wariancie jednej dużej pamięci
+    *! ważne aby uczenie i zbieranie traceów ze sobą nie kolidowały, my chcemy i tak zoptymalizować uczenie bo to zjmuje najwięcej czasu
+
+    ** każdy z podwątków wysyła zmiany do w0 który updateuje Q-server na bierząco
+    ** wątki updateują swojego agenta względem Q-servera i target-agenta raz na jakiś czas względem Q-servera (totaj pole do popisu dla zmian)
+
+ *TODO          
+      procesy - każdy z osobna wykonuje funkcę train(), 
+*TODO komunikacja odbywa się jedynie gdy któryś z nich znajdzie rozwiązanie, wtedy brodeactujemy do reszty że robota wykonana
+
+    ** tutaj można zrobić tak jak na wątkach z tym wyjątkiem że każdy ma swoje memory więc jedyne co synchronizujemy to sieć w jedną i drógą stronę
+
+
+ OGÓLNIE DLA GRUBO :
+    ** tworzy się zbiory po 2 agentów, jeden generuje dane, drógi przeprowadza proces uczenia, oba updateują swoje dane (u nas lepiej mieć 1/2 agenta generującego Tracey, i więcej agentów do uczenia) 
+
+
+
+
+ *TODO      wątki vs procesy   
  *TODO        1) rozproszoność (procesy) vs 2) równoległość (threads) w ramach efektywności
  *TODO  
  *TODO      sprawdzić czas generacji nowych sieci
