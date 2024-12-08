@@ -128,12 +128,15 @@ int main(int argc, char *argv[]){
 }
 
 /** MAIN
- * ! zastanów się, czy nie chcemy użyć np TensorFlow czy innej biblioteki do zastąpienia Polityki
+ * //! zastanów się, czy nie chcemy użyć np TensorFlow czy innej biblioteki do zastąpienia Polityki
  *   
  *   drobno vs gruboziarnistość
- * 
- * w grubo: wątki vs procesy   
- *TODO         rozproszoność (procesy) vs równoległość (threads) w ramach efektywności
+ *TODO w drobno:
+ *TODO 
+ *TODO 
+ *TODO w grubo: wątki vs procesy   
+ *TODO        1) rozproszoność (procesy) vs 2) równoległość (threads) w ramach efektywności
+ *TODO  
  *TODO      sprawdzić czas generacji nowych sieci
  *TODO 
  *TODO 
