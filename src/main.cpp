@@ -26,7 +26,7 @@ void testSingleExaple(){
             cout<<"start sampling for heigth:"<<iH<<", width:"<<iW<<endl;
             for(int s=0;s<n_samples;s++){
                     trainer.resetAgents();
-                    trainer.train(&time,&steps);
+                    trainer.train(&time,&steps,NULL);
                     writeHere<<iH<<","<<iW<<","<<time<<","<<steps<<endl;
                 }   
         }
@@ -85,7 +85,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
                 }
                 for(int s=0;s<n_samples;s++){
                     trainer.resetAgents();
-                    trainer.train(&time,&steps);
+                    trainer.train(&time,&steps,NULL);
                     writeHere<<iH<<","<<iW<<","<<time<<","<<steps<<endl;
                 }
                 //cout<<"finished sampling"<<endl<<endl;
@@ -101,15 +101,16 @@ void show_how_program_works(){
     auto trainer = DQN();
     double time = 0;
     int steps = 0;
+    int episodes = 0;
     Environment2D game = Environment2D(); // init environment
     // game.render();
     // game.step(3);
     // game.step(1);
     // usleep(1000000);
     // game.render();
-    Policy agent = trainer.train(&time,&steps);//uczymy nowego agenta
+    Policy agent = trainer.train(&time,&steps,&episodes);//uczymy nowego agenta
 
-    cout << "trained for: " << time << "s" << " in steps:"<<steps<<endl;
+    cout << "trained for:" << time << "s" << " thats "<<episodes<<" episodes done in "<<steps<<" steps"<<endl;
 
     cout << "\n\nPlaying game..." << endl;
     usleep(100000);

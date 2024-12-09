@@ -1,9 +1,6 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
-    target_agent = agent.copy();
-
     learning_rate = 0.005;
     gamma = 0.8;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
@@ -12,6 +9,10 @@ DQN::DQN(){
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;
+    learning_batch_size = 1;
+
+    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
+    target_agent = agent.copy();
 }
 
 void DQN::resetAgents(int hidden_count,int hidden_size){
@@ -65,7 +66,7 @@ bool DQN::collect_memory_step(){
     return fb.done;
 }
 
-void DQN::learn_from_memory(){
+void DQN::learn_from_memory(bool update_on_spot){
     DQNMemoryUnit learningExample = choose_random_from_memory();
     float q_correction=0, max=0;
     if(use_target_agent){
@@ -79,34 +80,35 @@ void DQN::learn_from_memory(){
         q_correction = learningExample.reward + gamma*max;
     }
 
-    agent.learn(q_correction,learningExample.action,learningExample.game);
+    agent.learn(q_correction,learningExample.action,learningExample.game,update_on_spot);
 }
 
-Policy DQN::train(double* learning_time,int* steps_done){
+Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     int done_counter = 0;
-    //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;
     if(show_output)
         cout << "Start training,  episodes:"<<episode_n<<endl;
     auto start_time = chrono::steady_clock::now();
-    for (int i=0 ; i<episode_n ; i++){
+    int i;
+    for (i=0 ; i<episode_n ; i++){
         int steps=0;
         bool done=false;
         
         game.reset();
         while(!done && steps<n_steps_in_one_go){
-            steps++;
-
-            done = collect_memory_step();
-            
-            //agent.learn(10,0,learningEgxample.game);
-            learn_from_memory();
-            if(use_target_agent)
-                if(target_agent_count_down == 0){
-                    target_agent.updateParameters(agent);
-                    target_agent_count_down = target_agent_update_freaquency;
-                }else{
-                    target_agent_count_down--;
-                }
+            for(int b = 0; b<learning_batch_size && done == false; b++){
+                steps++;
+                done = collect_memory_step();
+            }
+            for(int b = 0; b<learning_batch_size ; b++){
+                learn_from_memory(b == learning_batch_size -1);
+                if(use_target_agent)
+                    if(target_agent_count_down == 0){
+                        target_agent.updateParameters(agent);
+                        target_agent_count_down = target_agent_update_freaquency;
+                    }else{
+                        target_agent_count_down--;
+                    }
+            }
             if(done|| steps>=n_steps_in_one_go){
                 done_counter += steps;
                 eps *= epsDecay;
@@ -144,6 +146,8 @@ Policy DQN::train(double* learning_time,int* steps_done){
         *learning_time = exec_time.count() / 1000.0;
     if(steps_done != NULL)
         *steps_done = done_counter;
+    if(episodes != NULL)
+        *episodes = i;
     return agent;
 }
 

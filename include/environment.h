@@ -157,7 +157,7 @@ struct Environment2D
                 //std::cout << "\r";
                 if(!help_me)
                     help_me = true;
-                usleep(500000);
+                //usleep(500000);
             }
             stepper++;
             if(stepper > length()+1){

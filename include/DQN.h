@@ -11,7 +11,7 @@
 #include "../include/policy.h"
 
 using namespace std;
-const bool show_output = false;
+const bool show_output = true;
 
 struct DQNMemoryUnit
 {
@@ -51,16 +51,17 @@ private:
     int target_agent_count_down;
     int n_steps_in_one_go;
     int episode_n;
-    float learning_rate = 0.01;
+    float learning_rate;
+    int learning_batch_size;
 
 public:
 
     DQN();
 
-    Policy train(double* learning_time,int* steps_done);
+    Policy train(double* learning_time,int* steps_done,int* episodes);
 
     bool collect_memory_step();
-    void learn_from_memory();
+    void learn_from_memory(bool update_on_spot = true);
 
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
