@@ -1,10 +1,10 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    learning_rate = 0.01;
+    learning_rate = 0.005;
     gamma = 0.8;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
-    epsDecay = 0.85; // procent maleje TODO
+    epsDecay = 0.95; // procent maleje TODO
     target_agent_update_freaquency = 50;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
@@ -63,6 +63,13 @@ bool DQN::collect_memory_step(){
     if(!use_memory){
         memory.clear();
     }
+    // else{
+    //     // if(memory.size() > max_memory_size){
+    //     //     cout<<"memory precut-size:"<<memory.size()<<endl;
+    //     //     memory.erase(memory.begin(), memory.begin() +( memory.size() / 2));
+    //     //     cout<<"memory postcut-size:"<<memory.size()<<endl;
+    //     // }
+    // }
     memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward,fb.done));
     return fb.done;
 }
@@ -109,19 +116,24 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                 if(target_agent_count_down == 0){
                     target_agent.updateParameters(agent);
                     target_agent_count_down = target_agent_update_freaquency;
+                    network_learned = game.check_if_good_enougth(agent);
                 }else{
                     target_agent_count_down--;
+                    eps *= epsDecay;
                 }
             if(done|| steps>=n_steps_in_one_go){
                 done_counter += steps;
-                eps *= epsDecay;
+                network_learned = game.check_if_good_enougth(agent);
                 if(use_target_agent){
                     target_agent.updateParameters(agent);
                     target_agent_count_down = target_agent_update_freaquency;
                 }
             }
 
-        network_learned = game.check_if_good_enougth(agent);
+
+            if((steps == n_steps_in_one_go && eps < 0.01) || (eps < 0.001)){ // reseting exploration chance
+                eps = 1.0;
+            }
         }
 
 
@@ -130,9 +142,9 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
         }
 
-        if((steps == n_steps_in_one_go && eps < 0.01) || (eps < 0.001)){ // reseting exploration chance
-            eps = 1.0;
-        }
+        //if((steps == n_steps_in_one_go && eps < 0.01) || (eps < 0.001)){ // reseting exploration chance
+        //    eps = 1.0;
+        //}
         if(show_output){
             showBestChoicesFor(agent);
         }

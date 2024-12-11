@@ -28,6 +28,7 @@ struct Environment2D
     int positionW;
     int lengthH;
     int lengthW;
+    float steps_discount;
     std::vector<bool> visited;
 
     Environment2D(int H = 0,int W = 0){
@@ -46,12 +47,13 @@ struct Environment2D
 
         steps_done = 0;
         visited = std::vector<bool>(length(),false);
+        steps_discount = 1.0/(float)length();
     }
 
     Observation step(int action){
         assert(action >= 0 || action < 4);
         
-        //steps_done++;
+        steps_done++;
         int punishment = 0;
         if(action==0){
             if(positionH>0){
@@ -78,10 +80,11 @@ struct Environment2D
                 punishment += -1;
             }
         }
-        if(positionH==lengthH-1 && positionW==lengthW-1)
+        if(positionH==lengthH-1 && positionW==lengthW-1){
+            steps_done = 0;
             return Observation(lengthW + lengthH ,true);//+ distance_to_end_reward() + steps_done_penalty(), true);
-        else
-            return Observation(punishment,false);//distance_to_end_reward() + steps_done_penalty(), false);
+        }else
+            return Observation(punishment - steps_done*steps_discount,false);//distance_to_end_reward() + steps_done_penalty(), false);
     }
 
     void eraseLines(int count) {

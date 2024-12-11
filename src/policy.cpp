@@ -242,3 +242,76 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
     // B1 = B1.add(dJdB1.multiply(learningRate));
 //  nB;
 // }
+
+// back propagation and params update
+void Policy::learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_on_spot){ // row matrix
+    //  Wagi i bajasy
+    // std::vector<Matrix> hereW,B;
+    // W = 
+    // //  przechowywanie danych działania
+    // Matrix X, Y;
+    // std::vector<Matrix> H;
+    Matrix Y2;//make
+    //Z = computeOutput(oldGameRepresentation);
+    for(int n = 0;n <hidden_count + 1;n++){
+        //std::cout<<"just calculated: "<<std::endl;
+        if(n == 0){//! dla pierwszej warstwy
+            H[n] = X.dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
+            //H[n].print(std::cout);
+        }else if(n == hidden_count){//! dla ostatniej warstwy
+            Y2 = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
+            //Y.print(std::cout);
+        }else{//! dla każdej innej warstwy
+            H[n] = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
+            //H[n].print(std::cout);
+        }
+    }
+    //std::cout<<Y2;
+    Y2.set(0,action,q_correction);
+    // Loss J = 1/2 (expectedOutput - computedOutput)^2
+    // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
+    //std::cout<<"start learn hidden:"<<hidden_count<<std::endl;
+    Matrix D;
+    for(int n = hidden_count - 1;n>=-1;n--){
+        //std::cout<<"calculate dJdWB n:"<<n<<std::endl;
+        if(n == -1){//! dla pierwszej warstwy
+            D = dJdB.front().dot(W[n+2].transpose());
+            dJdB.insert(dJdB.begin(), D.multiply(X.dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
+            dJdW.insert(dJdW.begin(), X.transpose().dot(dJdB.front()));
+        }else if(n == hidden_count - 1){//! dla ostatniej warstwy
+            D = Y2.subtract(Y);
+            //std::cout<<Y2<<"|"<<Y<<"|"<<D<<std::endl;
+            //std::cout<<" my multiplie "<<std::endl;
+            //std::cout<<D<<std::endl;
+            //std::cout<<H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)<<std::endl;
+            dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            //std::cout<<dJdB.front()<<std::endl<<"___"<<std::endl;
+            dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
+        }else{//! dla każdej innej warstwy
+            //std::cout<<"1"<<std::endl;
+            D = dJdB.front().dot(W[n+2].transpose());
+            //std::cout<<"2"<<std::endl;
+            dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            //std::cout<<"3"<<n<<std::endl;
+            dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
+            //std::cout<<"1"<<n<<std::endl;
+        }
+    }
+
+    if(update_on_spot){
+        float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
+        float weigth_of_sample = (float)learningRate/(float)batches_to_add;
+        //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
+        int i = 0;
+        while(batches_to_add > i){
+            for(int n = 0;n<hidden_count + 1;n++){
+                W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+                B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+            }
+            i++;
+        }
+        dJdW.clear();
+        dJdB.clear();
+    }
+
+}  

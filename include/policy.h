@@ -32,6 +32,7 @@ public:
     Policy copy() const;
     Matrix computeOutput(std::vector<float> input);
     void learn(float q_correction,int action,std::vector<float> oldGameRepresentation, bool update_on_spot = true);
+    void learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation, bool update_on_spot = true);
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
     void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);
