@@ -1,7 +1,7 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    learning_rate = 0.005;
+    learning_rate = 0.01;
     gamma = 0.8;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     epsDecay = 0.85; // procent maleje TODO
@@ -9,10 +9,11 @@ DQN::DQN(){
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;
-    learning_batch_size = 1;
+    learning_batch_size = 5;
 
     agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
     target_agent = agent.copy();
+    //visited = vector<bool>(game.length(),false);
 }
 
 void DQN::resetAgents(int hidden_count,int hidden_size){
@@ -89,26 +90,28 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
         cout << "Start training,  episodes:"<<episode_n<<endl;
     auto start_time = chrono::steady_clock::now();
     int i;
+    bool network_learned = false;
     for (i=0 ; i<episode_n ; i++){
         int steps=0;
         bool done=false;
         
         game.reset();
-        while(!done && steps<n_steps_in_one_go){
-            for(int b = 0; b<learning_batch_size && done == false; b++){
+        while(!done && steps<n_steps_in_one_go && network_learned == false){
+            //for(int b = 0; b<learning_batch_size && done == false; b++){
                 steps++;
                 done = collect_memory_step();
-            }
-            for(int b = 0; b<learning_batch_size ; b++){
+            //}
+            for(int b = 0; b<learning_batch_size && b<memory.size() ; b++){
                 learn_from_memory(b == learning_batch_size -1);
-                if(use_target_agent)
-                    if(target_agent_count_down == 0){
-                        target_agent.updateParameters(agent);
-                        target_agent_count_down = target_agent_update_freaquency;
-                    }else{
-                        target_agent_count_down--;
-                    }
+                
             }
+            if(use_target_agent)
+                if(target_agent_count_down == 0){
+                    target_agent.updateParameters(agent);
+                    target_agent_count_down = target_agent_update_freaquency;
+                }else{
+                    target_agent_count_down--;
+                }
             if(done|| steps>=n_steps_in_one_go){
                 done_counter += steps;
                 eps *= epsDecay;
@@ -117,6 +120,8 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     target_agent_count_down = target_agent_update_freaquency;
                 }
             }
+
+        network_learned = game.check_if_good_enougth(agent);
         }
 
 
@@ -132,7 +137,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             showBestChoicesFor(agent);
         }
 
-        if(game.check_if_good_enougth(agent,show_output)){
+        if(network_learned){
             break;
         }
     }

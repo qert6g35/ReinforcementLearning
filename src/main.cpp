@@ -115,7 +115,7 @@ void show_how_program_works(){
     cout << "\n\nPlaying game..." << endl;
     usleep(100000);
 
-    game.check_if_good_enougth(agent,true);
+    game.show_how_it_works(agent);
 }
 
 int main(int argc, char *argv[]){

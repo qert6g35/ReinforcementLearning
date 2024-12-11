@@ -206,14 +206,14 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
     }
 
     if(update_on_spot){
-        int batches_to_add = dJdW.size()/(hidden_count+1);
-        //std::cout<<batches_to_add<<"  "<<dJdW.size()<<"/"<<(hidden_count+1);
-        int weigth_of_sample = 1.0/(float)batches_to_add;
+        float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
+        float weigth_of_sample = (float)learningRate/(float)batches_to_add;
+        //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
         int i = 0;
         while(batches_to_add > i){
             for(int n = 0;n<hidden_count + 1;n++){
-                W[n] = W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(learningRate*weigth_of_sample));
-                B[n] = B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(learningRate*weigth_of_sample));
+                W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+                B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
             }
             i++;
         }

@@ -28,6 +28,7 @@ struct Environment2D
     int positionW;
     int lengthH;
     int lengthW;
+    std::vector<bool> visited;
 
     Environment2D(int H = 0,int W = 0){
         if(H > 0){
@@ -44,12 +45,13 @@ struct Environment2D
         positionW = 0;
 
         steps_done = 0;
+        visited = std::vector<bool>(length(),false);
     }
 
     Observation step(int action){
         assert(action >= 0 || action < 4);
         
-        steps_done++;
+        //steps_done++;
         int punishment = 0;
         if(action==0){
             if(positionH>0){
@@ -144,30 +146,57 @@ struct Environment2D
         positionH = 0;
         positionW = 0;
 
-        steps_done = 0;
+        //steps_done = 0;
     }
 
-    int check_if_good_enougth(Policy the_agent,bool show_process){
+    bool check_if_good_enougth(Policy the_agent){
+        int old_H = positionH;
+        int old_W = positionW;
+        reset();
+        visited = std::vector<bool>(length(),false);
+        int action = 0;
+        do{
+            // if(show_process){
+            //     render(help_me);
+            //     //std::cout << "\r";
+            //     if(!help_me)
+            //         help_me = true;
+            //     //usleep(500000);
+            // }
+            if(!visited[positionH * lengthW + positionW]){
+                visited[positionH * lengthW + positionW] = true;
+            }else{
+                positionH = old_H;
+                positionW = old_W;
+                return false;
+            }
+            the_agent.computeOutput({getGameRepresentation()}).getMax( NULL, &action, NULL);
+        }while(!step(action).done);
+        positionH = old_H;
+        positionW = old_W;
+        return true;
+    }
+
+    void show_how_it_works(Policy the_agent){
         reset();
         int action = 0, stepper = 0;
         bool help_me = false;
         do{
-            if(show_process){
+            //if(show_process){
                 render(help_me);
                 //std::cout << "\r";
                 if(!help_me)
                     help_me = true;
-                //usleep(500000);
-            }
+                usleep(500000);
+            //}
             stepper++;
             if(stepper > length()+1){
-                return 0;
+                return ;
             }
             the_agent.computeOutput({getGameRepresentation()}).getMax( NULL, &action, NULL);
         }while(!step(action).done);
-        if(show_process)
-            render(true);
-        return stepper;
+        //if(show_process)
+        render(true);
     }
 
 };

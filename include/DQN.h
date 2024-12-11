@@ -28,9 +28,7 @@ struct DQNMemoryUnit
         reward = nreward;
     }
 
-    DQNMemoryUnit(){
-        
-    }
+    DQNMemoryUnit(){}
 };
 
 
@@ -53,7 +51,6 @@ private:
     int episode_n;
     float learning_rate;
     int learning_batch_size;
-
 public:
 
     DQN();
@@ -76,6 +73,7 @@ public:
 
 
 #endif
+
 /*
 
 
