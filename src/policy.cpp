@@ -304,13 +304,25 @@ void Policy::learn_thread(float q_correction,int action,std::vector<float> oldGa
     }
     int i;
     mtxW.lock();
-    for(i = 0;i<dJdW_local.size();i++){
-        dJdW.push_back(dJdW_local[i]);
+    if(dJdW.size() == 0){
+        for(i = 0;i<dJdW_local.size();i++){
+            dJdW.push_back(dJdW_local[i]);
+        }
+    }else{
+        for(i = 0;i<dJdW_local.size();i++){
+            dJdW[i].add(dJdW_local[i]);
+        }
     }
     mtxW.unlock();
     mtxB.lock();
-    for(i = 0;i<dJdB_local.size();i++){
-        dJdB.push_back(dJdB_local[i]);
+    if(dJdB.size() == 0){
+        for(i = 0;i<dJdB_local.size();i++){
+            dJdB.push_back(dJdB_local[i]);
+        }
+    }else{
+        for(i = 0;i<dJdB_local.size();i++){
+            dJdB[i].add(dJdB_local[i]);
+        }
     }
     mtxB.unlock();
     // TODO   dodaj mutex i wpisywanie wartości z lokalnego dJdB i dJdW do globalnych

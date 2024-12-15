@@ -2,14 +2,14 @@
 
 DQN::DQN(){
     learning_rate = 0.001;
-    gamma = 0.99;
+    gamma = 0.9;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     epsDecay = 0.95; // procent maleje TODO
     target_agent_update_freaquency = 50;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;
-    learning_batch_size = 16;
+    learning_batch_size = 12;
     
     agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate,threads_numer);
     target_agent = agent.copy();
@@ -170,17 +170,15 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             //}
             //cout<<"start learning"<<endl;
             if(use_threads){
-            for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                learn_from_memory(b);    
-            }
-            for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                threads[b].join();   
-            }
-            agent.change_weights();
+                for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                    learn_from_memory(b);    
+                }
+                for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                    threads[b].join();   
+                }
+                agent.change_weights();
             }else{
-                //for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                    learn_from_memory(-1);    
-                //}
+                learn_from_memory(-1);    
             }
             if(use_target_agent)
                 if(target_agent_count_down == 0){

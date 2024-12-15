@@ -47,7 +47,7 @@ struct Environment2D
 
         steps_done = 0;
         visited = std::vector<bool>(length(),false);
-        steps_discount = 0.3/(float)length();
+        steps_discount = 0.01/(float)length();
     }
 
     Observation step(int action){

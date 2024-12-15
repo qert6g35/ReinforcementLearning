@@ -57,7 +57,7 @@ private:
     int episode_n;
     float learning_rate;
     int learning_batch_size;
-    const int max_memory_size = 1000;
+    const int max_memory_size = 5000;
     //const int threads_numer = 1;
 public:
 
