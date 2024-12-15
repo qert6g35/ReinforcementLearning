@@ -47,7 +47,7 @@ struct Environment2D
 
         steps_done = 0;
         visited = std::vector<bool>(length(),false);
-        steps_discount = 1.0/(float)length();
+        steps_discount = 0.3/(float)length();
     }
 
     Observation step(int action){
@@ -84,6 +84,7 @@ struct Environment2D
             steps_done = 0;
             return Observation(lengthW + lengthH ,true);//+ distance_to_end_reward() + steps_done_penalty(), true);
         }else
+            //std::cout<<"punishment: "<<punishment - steps_done*steps_discount<<std::endl;
             return Observation(punishment - steps_done*steps_discount,false);//distance_to_end_reward() + steps_done_penalty(), false);
     }
 

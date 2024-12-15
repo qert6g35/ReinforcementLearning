@@ -17,7 +17,7 @@ void testSingleExaple(){
     std::ofstream writeHere;
     writeHere.open("DQN_extra.csv", std::ios::app);
     
-    auto trainer = DQN();
+    DQN trainer;//= DQN();
     double time = 0;
     int steps = 0;
     for(int iH = 9; iH <= instance_max_size; iH++){
@@ -42,7 +42,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
     std::ofstream writeHere;
     writeHere.open("DQN_memory_target.csv", std::ios::app);
     
-    auto trainer = DQN();
+    DQN trainer;
     double time = 0;
     int steps = 0;
     for(int iH = startingH; iH <= instance_max_size; iH++){
@@ -98,7 +98,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
 void show_how_program_works(){
     srand (time(NULL)); // to generate random weights
 
-    auto trainer = DQN();
+    DQN trainer;
     double time = 0;
     int steps = 0;
     int episodes = 0;

@@ -5,6 +5,8 @@
 //#include <time.h>
 #include <chrono>
 #include <random>
+#include <thread>
+#include <functional>
 
 #include "../include/matrix.h"
 #include "../include/environment.h"
@@ -39,6 +41,10 @@ private:
     Policy agent;
     Policy target_agent;
 
+    const int threads_numer = 12;
+    std::thread threads[12];
+    std::mutex safe_to_global_dJdW;
+    std::mutex safe_to_global_dJdB;
     std::vector<DQNMemoryUnit> memory;
     std::chrono::duration<double,std::milli> exec_time;
 
@@ -52,6 +58,7 @@ private:
     float learning_rate;
     int learning_batch_size;
     const int max_memory_size = 1000;
+    //const int threads_numer = 1;
 public:
 
     DQN();
@@ -59,7 +66,7 @@ public:
     Policy train(double* learning_time,int* steps_done,int* episodes);
 
     bool collect_memory_step();
-    void learn_from_memory(bool update_on_spot = true);
+    void learn_from_memory(int thread_id);
 
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state

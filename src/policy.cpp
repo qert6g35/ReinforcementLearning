@@ -103,12 +103,18 @@ Policy::Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,st
     B = nB;
 }
 
-Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,float learning_rate){
+Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,float learning_rate,int init_threds){
     learningRate = learning_rate;
     hidden_count = _hidden_count;
 
     int input_size = inputSize;
     int output_size = hidden_size;
+
+    for(int i = 0; i<init_threds;i++){
+        t_H.push_back(std::vector<Matrix>());
+        t_X.push_back(Matrix());
+        t_Y.push_back(Matrix());
+    }
 
     for(int n = 0;n<hidden_count+1;n++){
         
@@ -124,20 +130,12 @@ Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,
         if(n == hidden_count-1){
             output_size = outputSize;
         }else{
+            for(int i = 0; i<init_threds;i++ ){
+                t_H[i].push_back(Matrix(hidden_count, 1));
+            }
             H.push_back(Matrix(hidden_count, 1));
         }
-    // W1 = Matrix(inputNeuron, hiddenNeuron);
-    // W2 = Matrix(hiddenNeuron, outputNeuron);
-    // B1 = Matrix(1, hiddenNeuron);
-    // B2 = Matrix(1, outputNeuron);
-
-    // W1 = W1.applyFunction(random);
-    // W2 = W2.applyFunction(random);
-    // B1 = B1.applyFunction(random);
-    // B2 = B2.applyFunction(random);
     }
-    //std::cout<<"We Policy(int n_hidden_count,float n_learningRate,Matrix W,Matrix H)will expect "<<H.size()<<" hidden layers"<<std::endl;
-    //std::cout<<"We have "<<W.size()<<" w and b"<<std::endl;
 }
 
 
@@ -171,7 +169,7 @@ Matrix Policy::computeOutput(std::vector<float> input){
 }   
 
 // back propagation and params update
-void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_on_spot){ // row matrix
+void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation){ // row matrix
     Matrix Y2 = computeOutput(oldGameRepresentation);
     //std::cout<<Y2;
     Y2.set(0,action,q_correction);
@@ -205,22 +203,19 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
         }
     }
 
-    if(update_on_spot){
-        float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
-        float weigth_of_sample = (float)learningRate/(float)batches_to_add;
-        //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
-        int i = 0;
-        while(batches_to_add > i){
-            for(int n = 0;n<hidden_count + 1;n++){
-                W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
-                B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
-            }
-            i++;
+    float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
+    float weigth_of_sample = (float)learningRate/(float)batches_to_add;
+    //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
+    int i = 0;
+    while(batches_to_add > i){
+        for(int n = 0;n<hidden_count + 1;n++){
+            W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+            B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
         }
-        dJdW.clear();
-        dJdB.clear();
+        i++;
     }
-
+    dJdW.clear();
+    dJdB.clear();
         
     // stara sieć
     //nB;
@@ -244,74 +239,87 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
 // }
 
 // back propagation and params update
-void Policy::learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_on_spot){ // row matrix
+void Policy::learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB){ // row matrix
     //  Wagi i bajasy
     // std::vector<Matrix> hereW,B;
     // W = 
     // //  przechowywanie danych działania
     // Matrix X, Y;
     // std::vector<Matrix> H;
-    Matrix Y2;//make
+    t_X[thread_num] = Matrix({oldGameRepresentation});
+    Matrix D;//make
     //Z = computeOutput(oldGameRepresentation);
     for(int n = 0;n <hidden_count + 1;n++){
         //std::cout<<"just calculated: "<<std::endl;
         if(n == 0){//! dla pierwszej warstwy
-            H[n] = X.dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
+            t_H[thread_num][n] = t_X[thread_num].dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
             //H[n].print(std::cout);
         }else if(n == hidden_count){//! dla ostatniej warstwy
-            Y2 = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
+            D = t_H[thread_num][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
             //Y.print(std::cout);
         }else{//! dla każdej innej warstwy
-            H[n] = H[n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
+            t_H[thread_num][n] = t_H[thread_num][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
             //H[n].print(std::cout);
         }
     }
     //std::cout<<Y2;
-    Y2.set(0,action,q_correction);
     // Loss J = 1/2 (expectedOutput - computedOutput)^2
     // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
     //std::cout<<"start learn hidden:"<<hidden_count<<std::endl;
-    Matrix D;
+    std::vector<Matrix> dJdW_local, dJdB_local;
+    Matrix Y2 = D.copy();
+    D.set(0,action,q_correction);
+    D.subtract(Y2);
     for(int n = hidden_count - 1;n>=-1;n--){
         //std::cout<<"calculate dJdWB n:"<<n<<std::endl;
         if(n == -1){//! dla pierwszej warstwy
-            D = dJdB.front().dot(W[n+2].transpose());
-            dJdB.insert(dJdB.begin(), D.multiply(X.dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
-            dJdW.insert(dJdW.begin(), X.transpose().dot(dJdB.front()));
+            D = dJdB_local.front().dot(W[n+2].transpose());
+            dJdB_local.insert(dJdB_local.begin(), D.multiply(t_X[thread_num].dot(W[n+1]).add(B[n+1]).applyFunction(sigmoidePrime)));
+            dJdW_local.insert(dJdW_local.begin(), t_X[thread_num].transpose().dot(dJdB_local.front()));
         }else if(n == hidden_count - 1){//! dla ostatniej warstwy
-            D = Y2.subtract(Y);
             //std::cout<<Y2<<"|"<<Y<<"|"<<D<<std::endl;
             //std::cout<<" my multiplie "<<std::endl;
             //std::cout<<D<<std::endl;
             //std::cout<<H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)<<std::endl;
-            dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            dJdB_local.insert(dJdB_local.begin(), D.multiply(t_H[thread_num][n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
             //std::cout<<dJdB.front()<<std::endl<<"___"<<std::endl;
-            dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
+            dJdW_local.insert(dJdW_local.begin(), t_H[thread_num][n].transpose().dot(dJdB_local.front()));
         }else{//! dla każdej innej warstwy
             //std::cout<<"1"<<std::endl;
-            D = dJdB.front().dot(W[n+2].transpose());
+            D = dJdB_local.front().dot(W[n+2].transpose());
             //std::cout<<"2"<<std::endl;
-            dJdB.insert(dJdB.begin(), D.multiply(H[n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
+            dJdB_local.insert(dJdB_local.begin(), D.multiply(t_H[thread_num][n].dot(W[n+1]).add(B[n+1]).applyFunction(LeakyReLUPrime)));
             //std::cout<<"3"<<n<<std::endl;
-            dJdW.insert(dJdW.begin(), H[n].transpose().dot(dJdB.front()));
+            dJdW_local.insert(dJdW_local.begin(), t_H[thread_num][n].transpose().dot(dJdB_local.front()));
             //std::cout<<"1"<<n<<std::endl;
         }
     }
-
-    if(update_on_spot){
-        float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
-        float weigth_of_sample = (float)learningRate/(float)batches_to_add;
-        //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
-        int i = 0;
-        while(batches_to_add > i){
-            for(int n = 0;n<hidden_count + 1;n++){
-                W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
-                B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
-            }
-            i++;
-        }
-        dJdW.clear();
-        dJdB.clear();
+    int i;
+    mtxW.lock();
+    for(i = 0;i<dJdW_local.size();i++){
+        dJdW.push_back(dJdW_local[i]);
     }
+    mtxW.unlock();
+    mtxB.lock();
+    for(i = 0;i<dJdB_local.size();i++){
+        dJdB.push_back(dJdB_local[i]);
+    }
+    mtxB.unlock();
+    // TODO   dodaj mutex i wpisywanie wartości z lokalnego dJdB i dJdW do globalnych
+    // if(update_on_spot){
+    //     float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
+    //     float weigth_of_sample = (float)learningRate/(float)batches_to_add;
+    //     //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
+    //     int i = 0;
+    //     while(batches_to_add > i){
+    //         for(int n = 0;n<hidden_count + 1;n++){
+    //             W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+    //             B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+    //         }
+    //         i++;
+    //     }
+    //     dJdW.clear();
+    //     dJdB.clear();
+    // }
 
 }  

@@ -10,8 +10,8 @@ DQN::DQN(){
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;
     learning_batch_size = 5;
-
-    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
+    
+    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate,threads_numer);
     target_agent = agent.copy();
     //visited = vector<bool>(game.length(),false);
 }
@@ -26,7 +26,7 @@ void DQN::resetAgents(int hidden_count,int hidden_size){
         hidden_size = 10;
     }
     n_steps_in_one_go = 10 * game.length();
-    agent = Policy(game.length(), hs,hc, game.actionsCount, learning_rate);
+    agent = Policy(game.length(), hs,hc, game.actionsCount, learning_rate,threads_numer);
     if(use_target_agent){
         target_agent = agent.copy();
     }
@@ -74,24 +74,39 @@ bool DQN::collect_memory_step(){
     return fb.done;
 }
 
-void DQN::learn_from_memory(bool update_on_spot){
+void makeThreadLearn(int thread_idx,Policy &agent,float q_correction,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
+    //std::cout<<"thread is alive"<<endl<<"and we have policy"<<endl;
+    agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
+    //useAgent.learn_thread(q_correction,memory_unit.action,memory_unit.game,thread_id,NULL,NULL);
+}
+
+void DQN::learn_from_memory(int thread_id){
+    //cout<<"choose_random_from_memory thread:"<<thread_id<<endl;
     DQNMemoryUnit learningExample = choose_random_from_memory();
     float q_correction=0, max=0;
+    //cout<<"computeOutput thread:"<<thread_id<<endl;
     if(use_target_agent){
         target_agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
     }else{
         agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
     }
+    //cout<<"q_correction thread:"<<thread_id<<endl;
     if(learningExample.done == true){
         q_correction = learningExample.reward;
     }else{
         q_correction = learningExample.reward + gamma*max;
     }
-
-    agent.learn(q_correction,learningExample.action,learningExample.game,update_on_spot);
+    if(thread_id >= 0){
+        //std::cout<<"starting thread:"<<thread_id<<endl;
+        threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),q_correction,learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB)) );
+    }else{
+        //std::cout<<"standard learning thread:"<<thread_id<<endl;
+        agent.learn(q_correction,learningExample.action,learningExample.game);
+    }
 }
 
 Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
+    assert(learning_batch_size <= threads_numer);
     int done_counter = 0;
     if(show_output)
         cout << "Start training,  episodes:"<<episode_n<<endl;
@@ -104,14 +119,21 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
         
         game.reset();
         while(!done && steps<n_steps_in_one_go && network_learned == false){
+            //cout<<"start sampling"<<endl;
             //for(int b = 0; b<learning_batch_size && done == false; b++){
                 steps++;
                 done = collect_memory_step();
             //}
-            for(int b = 0; b<learning_batch_size && b<memory.size() ; b++){
-                learn_from_memory(b == learning_batch_size -1);
-                
+            //cout<<"start learning"<<endl;
+            for(int b = 0; b<learning_batch_size - 1 && b<memory.size() - 1; b++){
+                //cout<<"starting learn_from_memory:"<<b<<endl;
+                learn_from_memory(b);    
             }
+            for(int b = 0; b<learning_batch_size - 1 && b<memory.size() - 1; b++){
+                //cout<<"joining thread:"<<b<<endl;
+                threads[b].join();   
+            }
+            learn_from_memory(-1);
             if(use_target_agent)
                 if(target_agent_count_down == 0){
                     target_agent.updateParameters(agent);

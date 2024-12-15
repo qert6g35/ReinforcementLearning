@@ -65,7 +65,10 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "variant": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp"
     },
-    "makefile.configureOnOpen": true
+    "makefile.configureOnOpen": true,
+    "C_Cpp.errorSquiggles": "enabled"
 }

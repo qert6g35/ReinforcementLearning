@@ -108,12 +108,12 @@ Matrix Matrix::dot(Matrix const &m) const
 }
 
 Matrix Matrix::copy() const{
-    std::cout<<"?";
+    //std::cout<<"?";
     std::vector<std::vector<float>> newArray = std::vector<std::vector<float>>(height); 
     for(int h = 0; h<height; h++){
         newArray[h] = std::vector<float>(width);
         for(int w = 0; w<width;w++){
-            std::cout<<"?";
+            //std::cout<<"?";
             newArray[h][w] = array[h][w];
         }
     } 
