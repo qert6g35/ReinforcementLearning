@@ -34,10 +34,12 @@ private:
 public:
     Policy();
     Policy(int inputSize, int hidden_size,int hidden_count, int outputSize,float learning_rate,int init_threds);
-    Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB);
+    Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB,int init_threds);
 
     Policy copy() const;
     Matrix computeOutput(std::vector<float> input);
+    Matrix computeOutput_thread(std::vector<float> input,int threadID);
+    void change_weights();
     void learn(float q_correction,int action,std::vector<float> oldGameRepresentation);
     void learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB);
     std::vector<Matrix> getW() const;

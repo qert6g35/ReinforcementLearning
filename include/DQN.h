@@ -41,8 +41,8 @@ private:
     Policy agent;
     Policy target_agent;
 
-    const int threads_numer = 12;
-    std::thread threads[12];
+    const int threads_numer = 65;
+    std::thread threads[65];
     std::mutex safe_to_global_dJdW;
     std::mutex safe_to_global_dJdB;
     std::vector<DQNMemoryUnit> memory;
@@ -70,13 +70,14 @@ public:
 
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
-    DQNMemoryUnit choose_random_from_memory();// chooseing random memorysample
+    DQNMemoryUnit choose_random_from_memory(int give_last = -1);// chooseing random memorysample
 
     void resetAgents(int hidden_count = 8,int hidden_size = 10);
     void changeGame(int sizeH,int sizeW);
 
     bool use_memory = true;
     bool use_target_agent = true;
+    bool use_threads = true;
 };
 
 

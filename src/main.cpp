@@ -132,13 +132,16 @@ int main(int argc, char *argv[]){
 /** MAIN
  * //! zastanów się, czy nie chcemy użyć np TensorFlow czy innej biblioteki do zastąpienia Polityki
  *   
- *   drobno vs gruboziarnistość
+
+
  *TODO w drobno: (komunikacja wystepuje bardzo często między wątkami)
  *TODO 
         <jak chcemy to zrealizować?>
         ** wątki spawnowane mają za zadanie wykonać funkcję learn_from_memory(); (odpowiednio blokując się na wzajem na mutexie podczas updateowania wag.)
     
  *TODO 
+
+
  *TODO w grubo: (komunikacja występuje rzadziej)
  *TODO      
       wątki - (tutaj chcemy jak najbardziej skożystać ze wspólnej pamięci) 

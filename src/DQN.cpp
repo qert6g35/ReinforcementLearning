@@ -1,15 +1,15 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    learning_rate = 0.005;
-    gamma = 0.8;
+    learning_rate = 0.001;
+    gamma = 0.99;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     epsDecay = 0.95; // procent maleje TODO
     target_agent_update_freaquency = 50;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;
-    learning_batch_size = 5;
+    learning_batch_size = 16;
     
     agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate,threads_numer);
     target_agent = agent.copy();
@@ -74,36 +74,80 @@ bool DQN::collect_memory_step(){
     return fb.done;
 }
 
-void makeThreadLearn(int thread_idx,Policy &agent,float q_correction,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
-    //std::cout<<"thread is alive"<<endl<<"and we have policy"<<endl;
-    agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
-    //useAgent.learn_thread(q_correction,memory_unit.action,memory_unit.game,thread_id,NULL,NULL);
-}
 
-void DQN::learn_from_memory(int thread_id){
-    //cout<<"choose_random_from_memory thread:"<<thread_id<<endl;
-    DQNMemoryUnit learningExample = choose_random_from_memory();
+void makeThreadLearn(int thread_idx,Policy &agent,Policy &target_agent,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB,float gamma){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
     float q_correction=0, max=0;
-    //cout<<"computeOutput thread:"<<thread_id<<endl;
-    if(use_target_agent){
-        target_agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
-    }else{
-        agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
-    }
-    //cout<<"q_correction thread:"<<thread_id<<endl;
-    if(learningExample.done == true){
+    target_agent.computeOutput_thread(learningExample.game_next,thread_idx).getMax( NULL, NULL, &max);
+        
+    if(learningExample.done){
         q_correction = learningExample.reward;
     }else{
         q_correction = learningExample.reward + gamma*max;
     }
+    agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
+}
+
+void DQN::learn_from_memory(int thread_id){
+    //cout<<"choose_random_from_memory thread:"<<thread_id<<endl;
     if(thread_id >= 0){
-        //std::cout<<"starting thread:"<<thread_id<<endl;
-        threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),q_correction,learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB)) );
+        //! kod poniżej odpowiedzialny za uwzględnianie najnowszych próbek przy każdym uczeniu
+        // int use_last_sample = thread_id;
+        // if(use_last_sample > memory.size() || use_last_sample > 3){
+        //     use_last_sample = -1;
+        // }
+        DQNMemoryUnit learningExample = choose_random_from_memory(-1);
+        threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),std::ref(target_agent),learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB),gamma) );
+
     }else{
-        //std::cout<<"standard learning thread:"<<thread_id<<endl;
+        float q_correction=0, max=0;
+        DQNMemoryUnit learningExample = choose_random_from_memory();
+        //cout<<"computeOutput thread:"<<thread_id<<endl;
+        if(use_target_agent){
+            target_agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
+        }else{
+            agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
+        }
+        //cout<<"q_correction thread:"<<thread_id<<endl;
+        if(learningExample.done){
+            q_correction = learningExample.reward;
+        }else{
+            q_correction = learningExample.reward + gamma*max;
+        }
+
         agent.learn(q_correction,learningExample.action,learningExample.game);
     }
 }
+
+// void makeThreadLearn(int thread_idx,Policy &agent,float q_correction,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
+//     //std::cout<<"thread is alive"<<endl<<"and we have policy"<<endl;
+//     agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
+//     //useAgent.learn_thread(q_correction,memory_unit.action,memory_unit.game,thread_id,NULL,NULL);
+// }
+
+// void DQN::learn_from_memory(int thread_id){
+//     //cout<<"choose_random_from_memory thread:"<<thread_id<<endl;
+//     DQNMemoryUnit learningExample = choose_random_from_memory();
+//     float q_correction=0, max=0;
+//     //cout<<"computeOutput thread:"<<thread_id<<endl;
+//     if(use_target_agent){
+//         target_agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
+//     }else{
+//         agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
+//     }
+//     //cout<<"q_correction thread:"<<thread_id<<endl;
+//     if(learningExample.done == true){
+//         q_correction = learningExample.reward;
+//     }else{
+//         q_correction = learningExample.reward + gamma*max;
+//     }
+//     if(thread_id >= 0){
+//         //std::cout<<"starting thread:"<<thread_id<<endl;
+//         threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),q_correction,learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB)) );
+//     }else{
+//         //std::cout<<"standard learning thread:"<<thread_id<<endl;
+//         agent.learn(q_correction,learningExample.action,learningExample.game);
+//     }
+// }
 
 Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     assert(learning_batch_size <= threads_numer);
@@ -125,15 +169,19 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                 done = collect_memory_step();
             //}
             //cout<<"start learning"<<endl;
-            for(int b = 0; b<learning_batch_size - 1 && b<memory.size() - 1; b++){
-                //cout<<"starting learn_from_memory:"<<b<<endl;
+            if(use_threads){
+            for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
                 learn_from_memory(b);    
             }
-            for(int b = 0; b<learning_batch_size - 1 && b<memory.size() - 1; b++){
-                //cout<<"joining thread:"<<b<<endl;
+            for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
                 threads[b].join();   
             }
-            learn_from_memory(-1);
+            agent.change_weights();
+            }else{
+                //for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                    learn_from_memory(-1);    
+                //}
+            }
             if(use_target_agent)
                 if(target_agent_count_down == 0){
                     target_agent.updateParameters(agent);
@@ -161,7 +209,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
 
         if(show_output){
             cout << "Episode " << i+1 << "/" << episode_n << "\t";
-            cout << "[" << steps << " steps] eps:"<< eps << endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
+            cout << "[" << steps << " steps] eps:"<< eps <<"        total_steps_done:"<<done_counter <<endl ;//<<endl << " Szansa ma losowy krok" << eps*100.0<<endl;
         }
 
         //if((steps == n_steps_in_one_go && eps < 0.01) || (eps < 0.001)){ // reseting exploration chance
@@ -209,10 +257,10 @@ void DQN::showBestChoicesFor(Policy agent){
     }
 }
 
-DQNMemoryUnit DQN::choose_random_from_memory(){ 
-    if(use_memory)
+DQNMemoryUnit DQN::choose_random_from_memory(int give_last){ 
+    if(use_memory && give_last < 0)
         return memory[(int)(rand() % memory.size())];
-    return memory.back();
+    return memory[memory.size()-1-give_last];
 }
 
 // the cat code

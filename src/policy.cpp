@@ -94,13 +94,22 @@ std::vector<Matrix> Policy::getB() const{
 Policy::Policy(){
 }
 
-Policy::Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB){
+Policy::Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB,int init_threds){
     learningRate = n_learningRate;
     hidden_count = n_hidden_count;
 
     W = nW;
     H = nH;
     B = nB;
+
+    for(int i = 0; i<init_threds;i++){
+        t_H.push_back(std::vector<Matrix>());
+        for(int n = 0;n<hidden_count+1;n++){
+            t_H[i].push_back(Matrix());
+        }
+        t_X.push_back(Matrix());
+        t_Y.push_back(Matrix());
+    }
 }
 
 Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,float learning_rate,int init_threds){
@@ -141,7 +150,7 @@ Policy::Policy(int inputSize, int hidden_size,int _hidden_count, int outputSize,
 
 Policy Policy::copy() const{
     //std::cout<<"?";
-    return Policy(hidden_count,learningRate,W,H,B);
+    return Policy(hidden_count,learningRate,W,H,B,t_X.size());
 }
 
 
@@ -165,6 +174,26 @@ Matrix Policy::computeOutput(std::vector<float> input){
     }
     //std::cout<<"return output "<<std::endl;
     //Y.print(std::cout);
+    return Y;
+}   
+
+// forward propagation
+Matrix Policy::computeOutput_thread(std::vector<float> input,int threadID){
+    t_X[threadID] = Matrix({input});
+    //Z = computeOutput(oldGameRepresentation);
+    for(int n = 0;n <hidden_count + 1;n++){
+        //std::cout<<"just calculated: "<<std::endl;
+        if(n == 0){//! dla pierwszej warstwy
+            t_H[threadID][n] = t_X[threadID].dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
+            //H[n].print(std::cout);
+        }else if(n == hidden_count){//! dla ostatniej warstwy
+            return t_H[threadID][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
+            //Y.print(std::cout);
+        }else{//! dla każdej innej warstwy
+            t_H[threadID][n] = t_H[threadID][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
+            //H[n].print(std::cout);
+        }
+    }
     return Y;
 }   
 
@@ -203,8 +232,14 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
         }
     }
 
+    change_weights();
+}
+
+void Policy::change_weights(){
     float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
-    float weigth_of_sample = (float)learningRate/(float)batches_to_add;
+    //float weigth_of_sample = (float)learningRate/(float)batches_to_add; (uczenie z wyważonym batchem)
+    float weigth_of_sample = (float)learningRate;
+
     //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
     int i = 0;
     while(batches_to_add > i){
@@ -216,56 +251,29 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
     }
     dJdW.clear();
     dJdB.clear();
-        
-    // stara sieć
-    //nB;
-}   // Matrix D2 = Y2.subtract(Y); // błąd drugiej warstwy
-    // Matrix e2 = D2.multiply(H.dot(W2).add(B2).applyFunction(sigmoidePrime)); // błąd wewnętrzy neurownów 2. warstwy
-
-    // dJdW2 = H.transpose().dot(e2);// operacja dot wyznaczy nam kombinacje 
-    // dJdB2 = e2; // e2 [e,e] . [1,1]^T
-
-    // Matrix D1 = e2.dot(W2.transpose());//  błąd pierwszej warstwy
-    // Matrix e1 = D1.multiply(X.dot(W1).add(B1).applyFunction(sigmoidePrime)); // błąd wewnętrzy neurownów 1. warstwy
-
-    // dJdW1 = X.transpose().dot(e1);
-    // dJdB1 = e1;
-
-    // update weights and biases
-    // W1 = W1.add(dJdW1.multiply(learningRate));
-    // W2 = W2.add(dJdW2.multiply(learningRate));
-    // B1 = B1.add(dJdB1.multiply(learningRate));
-//  nB;
-// }
+}
 
 // back propagation and params update
 void Policy::learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB){ // row matrix
-    //  Wagi i bajasy
-    // std::vector<Matrix> hereW,B;
-    // W = 
-    // //  przechowywanie danych działania
-    // Matrix X, Y;
-    // std::vector<Matrix> H;
-    t_X[thread_num] = Matrix({oldGameRepresentation});
-    Matrix D;//make
-    //Z = computeOutput(oldGameRepresentation);
-    for(int n = 0;n <hidden_count + 1;n++){
-        //std::cout<<"just calculated: "<<std::endl;
-        if(n == 0){//! dla pierwszej warstwy
-            t_H[thread_num][n] = t_X[thread_num].dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
-            //H[n].print(std::cout);
-        }else if(n == hidden_count){//! dla ostatniej warstwy
-            D = t_H[thread_num][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
-            //Y.print(std::cout);
-        }else{//! dla każdej innej warstwy
-            t_H[thread_num][n] = t_H[thread_num][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
-            //H[n].print(std::cout);
-        }
-    }
-    //std::cout<<Y2;
-    // Loss J = 1/2 (expectedOutput - computedOutput)^2
-    // Then, we need to calculate the partial derivative of J with respect to W1,W2,B1,B2
-    //std::cout<<"start learn hidden:"<<hidden_count<<std::endl;
+
+
+    Matrix D = computeOutput_thread(oldGameRepresentation,thread_num);
+
+    // for(int n = 0;n <hidden_count + 1;n++){
+    //     //std::cout<<"just calculated: "<<std::endl;
+    //     if(n == 0){//! dla pierwszej warstwy
+    //         t_H[thread_num][n] = t_X[thread_num].dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
+    //         //H[n].print(std::cout);
+    //     }else if(n == hidden_count){//! dla ostatniej warstwy
+    //         D = t_H[thread_num][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
+    //         //Y.print(std::cout);
+    //     }else{//! dla każdej innej warstwy
+    //         t_H[thread_num][n] = t_H[thread_num][n-1].dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
+    //         //H[n].print(std::cout);
+    //     }
+    // }
+
+
     std::vector<Matrix> dJdW_local, dJdB_local;
     Matrix Y2 = D.copy();
     D.set(0,action,q_correction);
