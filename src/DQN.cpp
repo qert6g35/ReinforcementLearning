@@ -309,6 +309,10 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             //cout<<"MAIN_TRAIN starting learning"<<endl;
             start_threaded_learning.notify_all();// powiadamiamy wszystkie wątki że można uczyć
             start_lck.unlock();
+            for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                        if (threads[b].joinable())
+                            threads[b].join();
+                    }
             break;
         }
     }
