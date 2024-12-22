@@ -235,7 +235,7 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
         change_weights();
 }   
 
-void Policy::change_weights(){
+void Policy::change_weights(bool clear_derivatives_memory){
     float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
     //float weigth_of_sample = (float)learningRate/(float)batches_to_add; (uczenie z wyważonym batchem)
     float weigth_of_sample = (float)learningRate;
@@ -249,6 +249,12 @@ void Policy::change_weights(){
         }
         i++;
     }
+    if(clear_derivatives_memory){
+        clear_weigths_memory();
+    }
+}
+
+void Policy::clear_weigths_memory(){
     dJdW.clear();
     dJdB.clear();
 }

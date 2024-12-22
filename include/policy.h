@@ -37,11 +37,17 @@ public:
     Policy(int n_hidden_count,float n_learningRate,std::vector<Matrix> nW,std::vector<Matrix> nH,std::vector<Matrix> nB,int init_threds);
 
     Policy copy() const;
+    
+    //forward propagations
     Matrix computeOutput(std::vector<float> input);
     Matrix computeOutput_thread(std::vector<float> input,int threadID);
-    void change_weights();
+
+    void change_weights(bool clear_derivatives_memory = true);
+    void clear_weigths_memory();    
+    //backword propagations
     void learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights = false);
     void learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB);
+    
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
     void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);

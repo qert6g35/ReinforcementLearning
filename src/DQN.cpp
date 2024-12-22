@@ -14,6 +14,10 @@ DQN::DQN(){
     agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate,threads_numer);
     target_agent = agent.copy();
     //visited = vector<bool>(game.length(),false);
+    for(int thread_id = 0; thread_id < learning_batch_size; thread_id++){
+        threads[thread_id] = std::thread([this,thread_id](){this->makeDQN_Thread(thread_id);});
+    }
+    
 }
 
 void DQN::resetAgents(int hidden_count,int hidden_size){
@@ -70,36 +74,27 @@ bool DQN::collect_memory_step(){
     //     //     cout<<"memory postcut-size:"<<memory.size()<<endl;
     //     // }
     // }
+    
     memory.push_back(DQNMemoryUnit(game.getGameRepresentation(),oldGameRepresentation,action,fb.reward,fb.done));
+    //cout<<"added to memory, size:"<<memory.size()<<endl;
     return fb.done;
 }
 
-void DQN::makeThreadLearn(int thread_idx,DQNMemoryUnit learningExample){
-    float q_correction=0, max=0;
-    target_agent.computeOutput_thread(learningExample.game_next,thread_idx).getMax( NULL, NULL, &max);
+
+
+
+// void makeThreadLearn(int thread_idx,Policy &agent,Policy &target_agent,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB,float gamma){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
+//     float q_correction=0, max=0;
+//     target_agent.computeOutput_thread(learningExample.game_next,thread_idx).getMax( NULL, NULL, &max);
         
-    if(learningExample.done){
-        q_correction = learningExample.reward;
-    }else{
-        q_correction = learningExample.reward + gamma*max;
-    }
-    agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,safe_to_global_dJdW,safe_to_global_dJdB);
-
-}
-
-
-void makeThreadLearn(int thread_idx,Policy &agent,Policy &target_agent,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB,float gamma){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
-    float q_correction=0, max=0;
-    target_agent.computeOutput_thread(learningExample.game_next,thread_idx).getMax( NULL, NULL, &max);
-        
-    if(learningExample.done){
-        q_correction = learningExample.reward;
-    }else{
-        q_correction = learningExample.reward + gamma*max;
-    }
-    agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
+//     if(learningExample.done){
+//         q_correction = learningExample.reward;
+//     }else{
+//         q_correction = learningExample.reward + gamma*max;
+//     }
+//     agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
     
-}
+// }
 
 void DQN::learn_from_memory(int thread_id){
     //cout<<"choose_random_from_memory thread:"<<thread_id<<endl;
@@ -109,10 +104,10 @@ void DQN::learn_from_memory(int thread_id){
         // if(use_last_sample > memory.size() || use_last_sample > 3){
         //     use_last_sample = -1;
         // }
-        DQNMemoryUnit learningExample = choose_random_from_memory(-1);// wybierz przykład uczący
+        //DQNMemoryUnit learningExample = choose_random_from_memory(-1);// wybierz przykład uczący
         //spawn thread
         //threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),std::ref(target_agent),learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB),gamma) );
-        threads[thread_id] = std::thread([this,thread_id,learningExample](){this->makeThreadLearn(thread_id,learningExample);});
+        //threads[thread_id] = std::thread([this,thread_id](){this->makeDQN_Thread(thread_id);});
     }else{
         float q_correction=0, max=0;
         DQNMemoryUnit learningExample = choose_random_from_memory();
@@ -164,6 +159,58 @@ void DQN::learn_from_memory(int thread_id){
 //     }
 // }
 
+
+void DQN::makeDQN_Thread(int thread_idx){
+    cout<<"started therad "<<thread_idx<<endl;
+    thread_finished_learning[thread_idx] = true;
+    // TODO
+    //  Environment2D local_game;
+    //  Policy local_agent = agent.copy();
+    DQNMemoryUnit learningExample;
+    float q_correction=0, max=0;
+    std::unique_lock<std::mutex> lck(start_threaded_learning_mtx);
+    start_threaded_learning.wait(lck
+    ,[&]{
+        //cout<<"got notification that can start learning process: "<<!thread_finished_learning[thread_idx]<<endl;
+        return !thread_finished_learning[thread_idx];
+    }
+    );//czekamy aż Master powie że można zacząć się uczyć
+    while(threads_keep_working){
+        lck.unlock();
+        if(dev_debug_threading)
+            cout<<"therad "<<thread_idx<<" is learning..."<<endl;
+        learningExample = choose_random_from_memory();
+        //cout<<"therad "<<thread_idx<<" chosed from memory"<<endl;
+        target_agent.computeOutput_thread(learningExample.game_next,thread_idx).getMax( NULL, NULL, &max);
+        //cout<<"therad "<<thread_idx<<" target_agent.computeOutput_threaded done"<<endl;
+        if(learningExample.done){
+            q_correction = learningExample.reward;
+        }else{
+            q_correction = learningExample.reward + gamma*max;
+        }
+        //cout<<"therad "<<thread_idx<<"started agent learning threaded"<<endl;
+        agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,safe_to_global_dJdW,safe_to_global_dJdB);
+        //cout<<"therad "<<thread_idx<<" finished leaning"<<endl;
+
+        
+        //informujemy że skończyliśmy uczyć
+        std::lock_guard<std::mutex> finish_lck(finished_threaded_learning_mtx);
+        //cout<<"therad "<<thread_idx<<" notifies that it finished learning"<<endl;
+        thread_finished_learning[thread_idx] = true; // zaznaczamy że skończyliśmy uczyć
+        finished_threaded_learning.notify_one();
+        finish_lck.~lock_guard();
+        
+        
+        //czekamy aż Master powie że można zacząć się uczyć dalej
+        //cout<<"therad "<<thread_idx<<" whaits to learn again"<<endl;
+        lck.lock();
+        start_threaded_learning.wait(lck,[&]{
+            //cout<<"got notification that can start learning process: "<<!thread_finished_learning[thread_idx]<<endl;
+            return !thread_finished_learning[thread_idx];
+        });
+    }
+}
+
 Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     assert(learning_batch_size <= threads_numer);
     int done_counter = 0;
@@ -178,19 +225,40 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
         
         game.reset();
         while(!done && steps<n_steps_in_one_go && network_learned == false){
-            //cout<<"start sampling"<<endl;
-            //for(int b = 0; b<learning_batch_size && done == false; b++){
+            //cout<<"start sampling"<<endl
+            if(dev_debug_threading)
+                cout<<"MAIN_TRAIN collecting memory steps, steps:"<<steps<<endl;;
+            for(int b = 0; b<learning_batch_size && done == false; b++){
                 steps++;
                 done = collect_memory_step();
-            //}
+            }
             //cout<<"start learning"<<endl;
             if(use_threads){
+                //cout<<"MAIN_TRAIN prepareing for start"<<endl;
+                std::unique_lock<std::mutex> start_lck(start_threaded_learning_mtx);// ustawiamy flagi uczenia 
                 for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                    learn_from_memory(b);    
+                    thread_finished_learning[b] = false;
                 }
-                for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                    threads[b].join();   
-                }
+                //cout<<"MAIN_TRAIN starting learning"<<endl;
+                start_threaded_learning.notify_all();// powiadamiamy wszystkie wątki że można uczyć
+                start_lck.unlock();
+                //cout<<"MAIN_TRAIN whaiting for threads to finish"<<endl;
+                std::unique_lock<std::mutex> finish_lck(finished_threaded_learning_mtx);// czekamy na koniec uczenia 
+                finished_threaded_learning.wait(finish_lck,[&](){
+                    //cout<<"MAIN_TRAIN checking if learning finished"<<endl;
+                    for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                        if(thread_finished_learning[b] == false){
+                            //cout<<"MAIN_TRAIN thread:"<<b<<" still didnt finished..."<<endl;
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                // for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                //     threads[b].join();   
+                // }
+                if(dev_debug_threading)
+                    cout<<"MAIN_TRAIN change_weights"<<endl;
                 agent.change_weights();
             }else{
                 learn_from_memory(-1);    
@@ -233,6 +301,14 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
         }
 
         if(network_learned){
+            threads_keep_working = false;
+            std::unique_lock<std::mutex> start_lck(start_threaded_learning_mtx);// ustawiamy flagi uczenia 
+            for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                thread_finished_learning[b] = false;
+            }
+            //cout<<"MAIN_TRAIN starting learning"<<endl;
+            start_threaded_learning.notify_all();// powiadamiamy wszystkie wątki że można uczyć
+            start_lck.unlock();
             break;
         }
     }
@@ -272,6 +348,7 @@ void DQN::showBestChoicesFor(Policy agent){
 
 DQNMemoryUnit DQN::choose_random_from_memory(int give_last){ 
     if(use_memory && give_last < 0)
+        //cout<<"getting random from memory, size "<<memory.size()<<endl;
         return memory[(int)(rand() % memory.size())];
     return memory[memory.size()-1-give_last];
 }

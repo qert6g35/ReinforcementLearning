@@ -2,7 +2,7 @@
 #define dqn
 
 #include <stdlib.h>
-//#include <time.h>
+#include <condition_variable>
 #include <chrono>
 #include <random>
 #include <thread>
@@ -14,6 +14,7 @@
 
 using namespace std;
 const bool show_output = true;
+const bool dev_debug_threading = false;
 
 struct DQNMemoryUnit
 {
@@ -43,8 +44,15 @@ private:
 
     const int threads_numer = 65;
     std::thread threads[65];
+    bool thread_finished_learning[65];
     std::mutex safe_to_global_dJdW;
     std::mutex safe_to_global_dJdB;
+    int learning_batch_size;
+
+    std::condition_variable start_threaded_learning;
+    std::mutex start_threaded_learning_mtx;
+    std::condition_variable finished_threaded_learning;
+    std::mutex finished_threaded_learning_mtx;
     std::vector<DQNMemoryUnit> memory;
     std::chrono::duration<double,std::milli> exec_time;
 
@@ -56,9 +64,10 @@ private:
     int n_steps_in_one_go;
     int episode_n;
     float learning_rate;
-    int learning_batch_size;
     const int max_memory_size = 5000;
-    //const int threads_numer = 1;
+    
+    
+    bool threads_keep_working = true;
 public:
 
     DQN();
@@ -67,7 +76,7 @@ public:
 
     bool collect_memory_step();
     void learn_from_memory(int thread_id);
-    void makeThreadLearn(int thread_idx,DQNMemoryUnit learningExample);
+    void makeDQN_Thread(int thread_idx);
 
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
