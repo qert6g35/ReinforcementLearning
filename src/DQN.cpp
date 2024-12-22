@@ -9,7 +9,7 @@ DQN::DQN(){
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
     episode_n = 1000;
-    learning_batch_size = 12;
+    learning_batch_size = thread::hardware_concurrency();
     
     agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate,threads_numer);
     target_agent = agent.copy();
@@ -74,6 +74,19 @@ bool DQN::collect_memory_step(){
     return fb.done;
 }
 
+void DQN::makeThreadLearn(int thread_idx,DQNMemoryUnit learningExample){
+    float q_correction=0, max=0;
+    target_agent.computeOutput_thread(learningExample.game_next,thread_idx).getMax( NULL, NULL, &max);
+        
+    if(learningExample.done){
+        q_correction = learningExample.reward;
+    }else{
+        q_correction = learningExample.reward + gamma*max;
+    }
+    agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,safe_to_global_dJdW,safe_to_global_dJdB);
+
+}
+
 
 void makeThreadLearn(int thread_idx,Policy &agent,Policy &target_agent,DQNMemoryUnit learningExample,mutex &mtxW,mutex &mtxB,float gamma){//(Policy &useAgent,float q_correction,DQNMemoryUnit memory_unit,int thread_id){//,std::mutex*safe_to_global_dJdW,std::mutex*&safe_to_global_dJdB){
     float q_correction=0, max=0;
@@ -98,7 +111,8 @@ void DQN::learn_from_memory(int thread_id){
         // }
         DQNMemoryUnit learningExample = choose_random_from_memory(-1);// wybierz przykład uczący
         //spawn thread
-        threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),std::ref(target_agent),learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB),gamma) );
+        //threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),std::ref(target_agent),learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB),gamma) );
+        threads[thread_id] = std::thread([this,thread_id,learningExample](){this->makeThreadLearn(thread_id,learningExample);});
     }else{
         float q_correction=0, max=0;
         DQNMemoryUnit learningExample = choose_random_from_memory();

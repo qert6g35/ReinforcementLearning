@@ -67,6 +67,7 @@ public:
 
     bool collect_memory_step();
     void learn_from_memory(int thread_id);
+    void makeThreadLearn(int thread_idx,DQNMemoryUnit learningExample);
 
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state

@@ -120,7 +120,7 @@ void show_how_program_works(){
 
 int main(int argc, char *argv[]){
     //srand (time(NULL)); // to generate random weights
-
+    cout<<"we will be running "<<thread::hardware_concurrency()<<" threads"<<endl;
     // finish_time_tests(8);
     // run_time_tests(9,8);
     //testSingleExaple();
