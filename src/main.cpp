@@ -141,6 +141,27 @@ int main(int argc, char *argv[]){
     
  *TODO 
 
+0) zmnijszamy ilosć max iteracji względem ilości zespawnowanych wątków
+
+1) raz spawnujemy thready i tylko komunikacja
+
+__ od tąd już chyba zmiany przechodzą w gruboziarnistość___
+
+2) kżdy thread liczy na niezależnym agencie + synchronizacja z głównym wątkiem
+
+3) przed updatem każdy wątek sprawdza czy same jego zmiany wystarczą do tego aby sieć już działała poprawnie
+
+
+
+
+
+
+
+
+
+
+
+
 
  *TODO w grubo: (komunikacja występuje rzadziej)
  *TODO      

@@ -85,6 +85,7 @@ void makeThreadLearn(int thread_idx,Policy &agent,Policy &target_agent,DQNMemory
         q_correction = learningExample.reward + gamma*max;
     }
     agent.learn_thread(q_correction,learningExample.action,learningExample.game,thread_idx,mtxW,mtxB);
+    
 }
 
 void DQN::learn_from_memory(int thread_id){
@@ -95,9 +96,9 @@ void DQN::learn_from_memory(int thread_id){
         // if(use_last_sample > memory.size() || use_last_sample > 3){
         //     use_last_sample = -1;
         // }
-        DQNMemoryUnit learningExample = choose_random_from_memory(-1);
+        DQNMemoryUnit learningExample = choose_random_from_memory(-1);// wybierz przykład uczący
+        //spawn thread
         threads[thread_id] = std::thread( std::bind(makeThreadLearn,thread_id,std::ref(agent),std::ref(target_agent),learningExample,std::ref(safe_to_global_dJdW),std::ref(safe_to_global_dJdB),gamma) );
-
     }else{
         float q_correction=0, max=0;
         DQNMemoryUnit learningExample = choose_random_from_memory();

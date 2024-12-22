@@ -198,7 +198,7 @@ Matrix Policy::computeOutput_thread(std::vector<float> input,int threadID){
 }   
 
 // back propagation and params update
-void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation){ // row matrix
+void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights){ // row matrix
     Matrix Y2 = computeOutput(oldGameRepresentation);
     //std::cout<<Y2;
     Y2.set(0,action,q_correction);
@@ -231,9 +231,9 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
             //std::cout<<"1"<<n<<std::endl;
         }
     }
-
-    change_weights();
-}
+    if(update_weights)
+        change_weights();
+}   
 
 void Policy::change_weights(){
     float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);

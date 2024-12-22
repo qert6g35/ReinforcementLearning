@@ -40,7 +40,7 @@ public:
     Matrix computeOutput(std::vector<float> input);
     Matrix computeOutput_thread(std::vector<float> input,int threadID);
     void change_weights();
-    void learn(float q_correction,int action,std::vector<float> oldGameRepresentation);
+    void learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights = false);
     void learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB);
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
