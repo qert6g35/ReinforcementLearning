@@ -141,9 +141,9 @@ int main(int argc, char *argv[]){
     
  *TODO 
 
-0) zmnijszamy ilosć max iteracji względem ilości zespawnowanych wątków
+0) zmnijszamy ilosć max iteracji względem ilości zespawnowanych wątków // chyba nie trzeba
 
-1) raz spawnujemy thready i tylko komunikacja
+1) raz spawnujemy thready i tylko komunikacja //* DONE 
 
 __ od tąd już chyba zmiany przechodzą w gruboziarnistość___
 
