@@ -80,8 +80,10 @@ void Policy::updateParameters(std::vector<Matrix> newW,std::vector<Matrix> newB)
 }
 
 void Policy::updateParameters(Policy actual_policy){
-    W = actual_policy.W;
-    B = actual_policy.B;
+    for (auto i : actual_policy.W)
+        W.push_back(i);
+    for (auto i : actual_policy.B)
+        B.push_back(i);
 }
 
 std::vector<Matrix> Policy::getW() const{
@@ -235,22 +237,31 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
         change_weights();
 }   
 
-void Policy::change_weights(bool clear_derivatives_memory){
-    float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
+void Policy::change_weights(bool clear_derivatives_memory,float batches_to_add){
+    //float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
     //float weigth_of_sample = (float)learningRate/(float)batches_to_add; (uczenie z wyważonym batchem)
-    float weigth_of_sample = (float)learningRate;
+    float weigth_of_sample = (float)learningRate/batches_to_add;
 
     //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
-    int i = 0;
-    while(batches_to_add > i){
+    //int i = 0;
+    //while(batches_to_add > i){
         for(int n = 0;n<hidden_count + 1;n++){
-            W[n].add(dJdW[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
-            B[n].add(dJdB[n + (hidden_count + 1)*i].multiply(weigth_of_sample));
+            W[n].add(dJdW[n].copy().multiply(weigth_of_sample));
+            B[n].add(dJdB[n].copy().multiply(weigth_of_sample));
         }
-        i++;
-    }
+        //i++;
+    //}
     if(clear_derivatives_memory){
         clear_weigths_memory();
+    }
+}
+
+void Policy::change_weights_by_other_policy(Policy updater,float batches_to_add){
+    float weigth_of_sample = (float)learningRate/batches_to_add;
+
+    for(int n = 0;n<hidden_count + 1;n++){
+        W[n].add(updater.dJdW[n].copy().multiply(weigth_of_sample));
+        B[n].add(updater.dJdB[n].copy().multiply(weigth_of_sample));
     }
 }
 

@@ -45,17 +45,21 @@ private:
     const int threads_numer = 65;
     std::thread threads[65];
     bool thread_finished_learning[65];
-    std::mutex safe_to_global_dJdW;
-    std::mutex safe_to_global_dJdB;
+    std::mutex change_weigths_of_global_agent;
+    // std::mutex safe_to_global_dJdB;
     int learning_batch_size;
-
     std::condition_variable start_threaded_learning;
     std::mutex start_threaded_learning_mtx;
     std::condition_variable finished_threaded_learning;
     std::mutex finished_threaded_learning_mtx;
+    std::condition_variable start_threaded_updateing;
+    std::mutex start_threaded_updateing_mtx;
+    std::condition_variable finished_threaded_updateing;
+    std::mutex finished_threaded_updateing_mtx;
     std::vector<DQNMemoryUnit> memory;
     std::chrono::duration<double,std::milli> exec_time;
 
+    int updatelocalagentfrequency; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. 
     float gamma;
     float eps; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     float epsDecay; // procent maleje TODO
@@ -65,9 +69,12 @@ private:
     int episode_n;
     float learning_rate;
     const int max_memory_size = 15000;
+
+    bool network_learned = false;
     
     
     bool threads_keep_working = true;
+    
 public:
 
     DQN();
