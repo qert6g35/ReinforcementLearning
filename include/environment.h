@@ -153,7 +153,7 @@ struct Environment2D
         //steps_done = 0;
     }
 
-    bool check_if_good_enougth(Policy the_agent){
+    bool check_if_good_enougth(Policy * the_agent){
         int old_H = positionH;
         int old_W = positionW;
         reset();
@@ -174,7 +174,7 @@ struct Environment2D
                 positionW = old_W;
                 return false;
             }
-            the_agent.computeOutput_fast(getGameRepresentation()).getMax( NULL, &action, NULL);
+            the_agent->computeOutput_fast(getGameRepresentation()).getMax( NULL, &action, NULL);
         }while(!step(action).done);
         positionH = old_H;
         positionW = old_W;
