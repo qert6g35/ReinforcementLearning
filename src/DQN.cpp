@@ -11,12 +11,12 @@ DQN::DQN(){
     episode_n = 1000;
     
     
-    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate,threads_numer);
+    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
     target_agent = agent.copy();
     network_learned = false;
     //visited = vector<bool>(game.length(),false);
     if(use_threads){
-        learning_batch_size = thread::hardware_concurrency();// << ilość wątków jakie będą pracowąć podczas uczenia
+        learning_batch_size = thread::hardware_concurrency() -1;// << ilość wątków jakie będą pracowąć podczas uczenia
         updatelocalagentfrequency = 1; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. 
     }else{
         threads_keep_working = false;
@@ -35,7 +35,7 @@ void DQN::resetAgents(int hidden_count,int hidden_size){
         hidden_size = 10;
     }
     n_steps_in_one_go = 10 * game.length();
-    agent = Policy(game.length(), hs,hc, game.actionsCount, learning_rate,threads_numer);
+    agent = Policy(game.length(), hs,hc, game.actionsCount, learning_rate);
     if(use_target_agent){
         target_agent = agent.copy();
     }
@@ -146,17 +146,16 @@ void DQN::makeDQN_Thread(int thread_idx){
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<"local_agent.learn"<<endl;
         
-        change_weigths_of_global_agent.lock();
-
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<"change_weights_by_other_policy PRE"<<endl;
+        change_weigths_of_global_agent.lock();
 
         agent.change_weights_by_other_policy(&local_agent);
-        
-        if(dev_debug_threading)
-            cout<<"therad "<<thread_idx<<"change_weights_by_other_policy POST"<<endl;
 
         change_weigths_of_global_agent.unlock();
+
+        if(dev_debug_threading)
+            cout<<"therad "<<thread_idx<<"change_weights_by_other_policy POST"<<endl;
 
         //informujemy że skończyliśmy uczyć
         if(dev_debug_threading)
@@ -390,11 +389,11 @@ void DQN::showBestChoicesFor(Policy agent){
     }
 }
 
-DQNMemoryUnit DQN::choose_random_from_memory(int give_last){ 
-    if(use_memory && give_last < 0)
+DQNMemoryUnit DQN::choose_random_from_memory(){ 
+    //if(use_memory && give_last < 0)
         //cout<<"getting random from memory, size "<<memory.size()<<endl;
         return memory[(int)(rand() % memory.size())];
-    return memory[memory.size()-1-give_last];
+    //return memory[memory.size()-1-give_last];
 }
 
 //TODO

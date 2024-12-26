@@ -22,6 +22,7 @@ public:
     Matrix();
     Matrix(int height, int width);
     Matrix(std::vector<std::vector<float> > const &array);
+    ~Matrix();
 
     Matrix add(Matrix const &m); // addition
     Matrix subtract(Matrix const &m); // subtraction

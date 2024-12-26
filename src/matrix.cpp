@@ -3,6 +3,11 @@
 
 Matrix::Matrix(){}
 
+Matrix::~Matrix(){
+    //std::cout<<"Mateix Deconstructor";
+    this->array.clear();
+}
+
 Matrix::Matrix(int height, int width)
 {
     this->height = height;
