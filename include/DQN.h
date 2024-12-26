@@ -14,7 +14,7 @@
 
 using namespace std;
 const bool show_output = true;
-const bool dev_debug_threading = false;
+const bool dev_debug_threading = true;
 
 struct DQNMemoryUnit
 {
@@ -60,7 +60,8 @@ private:
     std::vector<DQNMemoryUnit> memory;
     std::chrono::duration<double,std::milli> exec_time;
 
-    int updatelocalagentfrequency; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. 
+    int update_local_agent_frequency; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. 
+    bool update_local_agent = false;
     float gamma;
     float eps; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     float epsDecay; // procent maleje TODO
