@@ -174,7 +174,7 @@ struct Environment2D
                 positionW = old_W;
                 return false;
             }
-            the_agent.computeOutput({getGameRepresentation()}).getMax( NULL, &action, NULL);
+            the_agent.computeOutput(getGameRepresentation()).getMax( NULL, &action, NULL);
         }while(!step(action).done);
         positionH = old_H;
         positionW = old_W;

@@ -41,12 +41,13 @@ public:
     //forward propagations
     Matrix computeOutput(std::vector<float> input);
     Matrix computeOutput_thread(std::vector<float> input,int threadID);
+    Matrix computeOutput_fast(std::vector<float>const& input);
 
-    void change_weights(bool clear_derivatives_memory = true,float batches_to_add = 1.0);
-    void change_weights_by_other_policy(Policy updater,float batches_to_add = 1.0);
+    void change_weights(bool clear_derivatives_memory = true);
+    void change_weights_by_other_policy(Policy * updater);
     void clear_weigths_memory();    
     //backword propagations
-    void learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights = false);
+    void learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights = false,float batches_to_add = 1.0);
     void learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB);
     
     std::vector<Matrix> getW() const;

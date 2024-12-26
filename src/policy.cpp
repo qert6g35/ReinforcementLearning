@@ -199,8 +199,28 @@ Matrix Policy::computeOutput_thread(std::vector<float> input,int threadID){
     return Y;
 }   
 
+// forward propagation
+Matrix Policy::computeOutput_fast(std::vector<float> const & input){
+    Matrix out = Matrix({input});
+    //Z = computeOutput(oldGameRepresentation);
+    for(int n = 0;n <hidden_count + 1;n++){
+        //std::cout<<"just calculated: "<<std::endl;
+        if(n == 0){//! dla pierwszej warstwy
+            out = out.dot(W[n]).add(B[n]).applyFunction(sigmoid); // n = 0
+            //H[n].print(std::cout);
+        }else if(n == hidden_count){//! dla ostatniej warstwy
+            return out.dot(W[n]).add(B[n]).applyFunction(LeakyReLU); // n = hidden_count
+            //Y.print(std::cout);
+        }else{//! dla każdej innej warstwy
+            out = out.dot(W[n]).add(B[n]).applyFunction(LeakyReLU);
+            //H[n].print(std::cout);
+        }
+    }
+    return Y;
+}   
+
 // back propagation and params update
-void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights){ // row matrix
+void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights,float batches_to_add){ // row matrix
     Matrix Y2 = computeOutput(oldGameRepresentation);
     //std::cout<<Y2;
     Y2.set(0,action,q_correction);
@@ -233,35 +253,34 @@ void Policy::learn(float q_correction,int action,std::vector<float> oldGameRepre
             //std::cout<<"1"<<n<<std::endl;
         }
     }
+    //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
+    //int i = 0;
+    //while(batches_to_add > i){
+    float weigth_of_sample = (float)learningRate/batches_to_add;
+    for(int n = 0;n<hidden_count + 1;n++){
+        dJdW[n].multiply(weigth_of_sample);
+        dJdB[n].multiply(weigth_of_sample);
+    }
     if(update_weights)
         change_weights();
 }   
 
-void Policy::change_weights(bool clear_derivatives_memory,float batches_to_add){
-    //float batches_to_add = (float)dJdW.size()/(float)(hidden_count+1);
-    //float weigth_of_sample = (float)learningRate/(float)batches_to_add; (uczenie z wyważonym batchem)
-    float weigth_of_sample = (float)learningRate/batches_to_add;
+void Policy::change_weights(bool clear_derivatives_memory){
 
-    //std::cout<<"we run"<<batches_to_add<<" batches,  weigth of sample:"<<weigth_of_sample<<"  counted as:"<<learningRate<<"/"<<batches_to_add<<std::endl;
-    //int i = 0;
-    //while(batches_to_add > i){
-        for(int n = 0;n<hidden_count + 1;n++){
-            W[n].add(dJdW[n].copy().multiply(weigth_of_sample));
-            B[n].add(dJdB[n].copy().multiply(weigth_of_sample));
-        }
-        //i++;
-    //}
+    for(int n = 0;n<hidden_count + 1;n++){
+        W[n].add(dJdW[n]);
+        B[n].add(dJdB[n]);
+    }
+
     if(clear_derivatives_memory){
         clear_weigths_memory();
     }
 }
 
-void Policy::change_weights_by_other_policy(Policy updater,float batches_to_add){
-    float weigth_of_sample = (float)learningRate/batches_to_add;
-
+void Policy::change_weights_by_other_policy(Policy * updater){
     for(int n = 0;n<hidden_count + 1;n++){
-        W[n].add(updater.dJdW[n].copy().multiply(weigth_of_sample));
-        B[n].add(updater.dJdB[n].copy().multiply(weigth_of_sample));
+        W[n].add(updater->dJdW[n]);
+        B[n].add(updater->dJdB[n]);
     }
 }
 

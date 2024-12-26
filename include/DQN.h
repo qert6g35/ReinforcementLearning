@@ -41,6 +41,7 @@ private:
 
     Policy agent;
     Policy target_agent;
+    Policy final_agent;
 
     const int threads_numer = 65;
     std::thread threads[65];
@@ -68,7 +69,7 @@ private:
     int n_steps_in_one_go;
     int episode_n;
     float learning_rate;
-    const int max_memory_size = 15000;
+    const int max_memory_size = 5000;
 
     bool network_learned = false;
     
