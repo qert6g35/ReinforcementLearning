@@ -53,7 +53,7 @@ public:
     std::vector<Matrix> getW() const;
     std::vector<Matrix> getB() const;
     void updateParameters(std::vector<Matrix> W,std::vector<Matrix>B);
-    void updateParameters(Policy actual_policy);
+    void updateParameters(Policy * actual_policy);
     // float activate(float value,int n_layer) const;
     // float activatePrime(float value,int n_layer) const;
 };

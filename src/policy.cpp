@@ -79,11 +79,17 @@ void Policy::updateParameters(std::vector<Matrix> newW,std::vector<Matrix> newB)
     B = newB;
 }
 
-void Policy::updateParameters(Policy actual_policy){
-    for (auto i : actual_policy.W)
-        W.push_back(i);
-    for (auto i : actual_policy.B)
-        B.push_back(i);
+void Policy::updateParameters(Policy * actual_policy){
+    for(int n = 0;n<hidden_count+1;n++){
+        W[n] = actual_policy->W[n];
+        B[n] = actual_policy->B[n];
+    }
+    // W.clear();
+    // for (auto i : actual_policy.W)
+    //     W.push_back(i);
+    // B.clear();
+    // for (auto i : actual_policy.B)
+    //     B.push_back(i);
 }
 
 std::vector<Matrix> Policy::getW() const{

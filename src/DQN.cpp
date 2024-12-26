@@ -110,7 +110,7 @@ void DQN::makeDQN_Thread(int thread_idx){
     start_lck.unlock();
     std::unique_lock<std::mutex> finish_lck(finished_threaded_learning_mtx);
     finish_lck.unlock();
-    std::unique_lock<mutex> start_ulck(start_threaded_updateing_mtx);
+    std::unique_lock<std::mutex> start_ulck(start_threaded_updateing_mtx);
     start_ulck.unlock();
     std::unique_lock<std::mutex> finish_ulck(finished_threaded_updateing_mtx);
     finish_ulck.unlock();
@@ -193,7 +193,7 @@ void DQN::makeDQN_Thread(int thread_idx){
 
         
         //lck.unlock();true== 0){
-        local_agent.updateParameters(agent);
+        local_agent.updateParameters(&agent);
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" updateing local_agent"<<endl;
         
@@ -324,7 +324,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             }
             if(use_target_agent)
                 if(target_agent_count_down <= 0){
-                    target_agent.updateParameters(agent);
+                    target_agent.updateParameters(&agent);
                     target_agent_count_down = target_agent_update_freaquency;
                 }else{
                     //network_learned = game.check_if_good_enougth(agent);
@@ -335,7 +335,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                 done_counter += steps;
                 //network_learned = game.check_if_good_enougth(agent);
                 if(use_target_agent){
-                    target_agent.updateParameters(agent);
+                    target_agent.updateParameters(&agent);
                     target_agent_count_down = target_agent_update_freaquency;
                 }
             }
