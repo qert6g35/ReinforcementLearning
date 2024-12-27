@@ -35,12 +35,12 @@ struct Environment2D
         if(H > 0){
             lengthH = H;
         }else{
-            lengthH = 50;
+            lengthH = 15;
         }
         if(W > 0){
             lengthH = W;
         }else{
-            lengthW = 50;
+            lengthW = 15;
         }
         positionH = 0;
         positionW = 0;

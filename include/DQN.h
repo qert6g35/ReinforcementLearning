@@ -71,7 +71,7 @@ private:
     int n_steps_in_one_go;
     int episode_n;
     float learning_rate;
-    const int max_memory_size = 5000;
+    const int max_memory_size = 10000;
 
     bool network_learned = false;
     

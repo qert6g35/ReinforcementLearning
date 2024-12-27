@@ -96,7 +96,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
 }
 
 void run_multithreaded_tests(){
-    int n_samples = 10;
+    int n_samples = 100;
     Environment2D game = Environment2D(); 
 
     std::ofstream writeHere;
@@ -136,11 +136,11 @@ void show_how_program_works(){
 
     cout << "trained for:" << time << "s" << " thats "<<episodes<<" episodes done in "<<steps<<" steps"<<endl;
     
-    trainer.resetAgents();
+    // trainer.resetAgents();
 
-    Policy agent2 = trainer.train(&time,&steps,&episodes);//uczymy nowego agenta
+    // Policy agent2 = trainer.train(&time,&steps,&episodes);//uczymy nowego agenta
 
-    cout << "trained for:" << time << "s" << " thats "<<episodes<<" episodes done in "<<steps<<" steps"<<endl;
+    // cout << "trained for:" << time << "s" << " thats "<<episodes<<" episodes done in "<<steps<<" steps"<<endl;
 
     // cout << "\n\nPlaying game..." << endl;
     // usleep(100000);
@@ -154,7 +154,11 @@ int main(int argc, char *argv[]){
     // finish_time_tests(8);
     // run_time_tests(9,8);
     //testSingleExaple();
-    run_multithreaded_tests();
+    //show_how_program_works();
+    for(int i = 1; i < 100; i ++){
+        cout<<" STARTING TEST NO."<<i<<endl;
+        run_multithreaded_tests();
+    }
     
     return 0;
 }

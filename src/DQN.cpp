@@ -1,14 +1,14 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    learning_rate = 0.0001;
+    learning_rate = 0.00001;
     gamma = 0.99;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
-    epsDecay = 0.95; // procent maleje TODO
+    epsDecay = 0.98; // procent maleje TODO
     target_agent_update_freaquency = 100;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
-    episode_n = 1000;
+    episode_n = 10000;
     
     
     agent = Policy(game.length(), 10,10, game.actionsCount, learning_rate);
@@ -27,6 +27,7 @@ DQN::DQN(){
 void DQN::resetAgents(int hidden_count,int hidden_size,int threads_number){
     update_local_agent = false;
     network_learned = false;
+    learning_batch_size = threads_number;
     if(threads_number > 0){
         threads_keep_working = true;
         use_threads = true;
