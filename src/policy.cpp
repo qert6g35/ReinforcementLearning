@@ -295,7 +295,26 @@ void Policy::change_weights_by_other_policy(Policy * updater){
     }
 }
 
+void Policy::safe_dJs_in_storage(){
+    if(dJdW_storage.empty()){
+        for(int n = 0;n<hidden_count + 1;n++){
+            dJdW_storage.push_back(dJdW[n]);
+            dJdB_storage.push_back(dJdB[n]);
+        }
+    }else{
+        for(int n = 0;n<hidden_count + 1;n++){
+            dJdW_storage[n].add(dJdW[n]);
+            dJdB_storage[n].add(dJdB[n]);
+        }
+    }
+}
 
+void Policy::clear_weigths_derivatives_storage(){
+    //std::cout<<"clear_weigths_memory PRE"<<std::endl;
+    dJdW_storage.clear();
+    dJdB_storage.clear();
+    //std::cout<<"clear_weigths_memory POST"<<std::endl;
+}
 
 void Policy::clear_weigths_memory(){
     //std::cout<<"clear_weigths_memory PRE"<<std::endl;

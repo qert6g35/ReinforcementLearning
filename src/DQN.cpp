@@ -11,7 +11,7 @@ DQN::DQN(){
     episode_n = 1000;
     
     
-    agent = Policy(game.length(), 10,8, game.actionsCount, learning_rate);
+    agent = Policy(game.length(), 10,10, game.actionsCount, learning_rate);
     target_agent = agent.copy();
     network_learned = false;
     //visited = vector<bool>(game.length(),false);
@@ -68,7 +68,7 @@ bool DQN::collect_memory_step(){
     }
     else{
         if(memory.size() > max_memory_size){
-            memory.erase(memory.begin(), memory.begin() +( memory.size() / 2));
+            memory.erase(memory.begin(), memory.begin() +( memory.size() / 3));
         }
     }
     
@@ -171,7 +171,6 @@ void DQN::makeDQN_Thread(int thread_idx){
 
         thread_finished_learning[thread_idx] = true; // zaznaczamy że skończyliśmy uczyć
         finish_lck.lock();
-
         finished_threaded_learning.notify_all();
         finish_lck.unlock();
         
@@ -217,10 +216,12 @@ void DQN::makeDQN_Thread(int thread_idx){
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" whaitibng for next learning session to start"<<endl;
         //czekamy aż Master powie że można zacząć się uczyć dalej
-        }
+    }
+    cout<<"therad "<<thread_idx<<" STOPED "<<endl;
 }
 
 Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
+    final_agent = agent.copy();
     assert(learning_batch_size <= threads_numer);
     bool whait_for_update = false;
     int done_counter = 0;
@@ -398,6 +399,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
                 thread_finished_learning[b] = false;
             }
+            update_local_agent = false;
             //cout<<"MAIN_TRAIN starting learning"<<endl;
             start_threaded_learning.notify_all();// powiadamiamy wszystkie wątki że można uczyć
             start_lck.unlock();
@@ -408,7 +410,11 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             break;
         }
     }
-    exec_time = chrono::steady_clock::now() - start_time;
+    if(network_learned){
+        exec_time = chrono::steady_clock::now() - start_time;
+    }else{
+        exec_time = start_time - chrono::steady_clock::now();
+    }
     //odp1 = agent.computeOutput({game.getGameRepresentation()});
     //odp2 = target_agent.computeOutput({game.getGameRepresentation()});
     //cout <<"agent        "<< odp1 <<"target_agent "<< odp2 << endl;

@@ -46,6 +46,8 @@ public:
     void change_weights(bool clear_derivatives_memory = true);
     void change_weights_by_other_policy(Policy * updater);
     void clear_weigths_memory();    
+    void safe_dJs_in_storage();
+    void clear_weigths_derivatives_storage();
     //backword propagations
     void learn(float q_correction,int action,std::vector<float> oldGameRepresentation,bool update_weights = false,float batches_to_add = 1.0);
     //void learn_thread(float q_correction,int action,std::vector<float> oldGameRepresentation,int thread_num,std::mutex& mtxW,std::mutex& mtxB);

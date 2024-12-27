@@ -59,25 +59,25 @@ struct Environment2D
             if(positionH>0){
                 positionH--;
             }else{
-                punishment += -1;
+                punishment += - 1;// ((float)lengthW + (float)lengthH - steps_done*steps_discount)/2;
             }
         }else if(action==1){
             if(positionH<lengthH - 1){
                 positionH++;
             }else{
-                punishment += -1;
+                punishment += - 1;// ((float)lengthW + (float)lengthH - steps_done*steps_discount)/2;
             }
         }else if(action==2){
             if(positionW>0){
                 positionW--;
             }else{
-                punishment += -1;
+                punishment += - 1;// ((float)lengthW + (float)lengthH - steps_done*steps_discount)/2;
             }
         }else if(action==3){
             if(positionW<lengthW - 1){
                 positionW++;
             }else{
-                punishment += -1;
+                punishment += - 1;// ((float)lengthW + (float)lengthH - steps_done*steps_discount)/2;
             }
         }
         if(positionH==lengthH-1 && positionW==lengthW-1){
@@ -100,7 +100,7 @@ struct Environment2D
             std::cout << "\r"; // Resume the cursor at beginning of line
         }
     }
-
+    
     void render(bool erase = true){
         //Matrix game(lengthH,lengthW);
         //game.set(positionH,positionW,1);
