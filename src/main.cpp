@@ -95,6 +95,30 @@ void run_time_tests(int startingH = 2, int startingW = 2){
     //trainer.train(&time);//uczymy nowego agenta
 }
 
+void run_multithreaded_tests(){
+    int n_samples = 10;
+    Environment2D game = Environment2D(); 
+
+    std::ofstream writeHere;
+    writeHere.open("DQN_multithreaded.csv", std::ios::app);
+    
+    DQN trainer;
+    double time = 0;
+    int steps = 0;
+    int threds_number[9] = {0,1,2,4,6,8,12,16,32};
+    for(int threads_number_id = 0; threads_number_id < 9; threads_number_id++){
+        cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
+        for(int helper = 0; helper<n_samples;helper++){
+            trainer.resetAgents(10,10,threds_number[threads_number_id]);
+            Policy agent = trainer.train(&time,&steps,NULL);
+            game.show_how_it_works(agent);
+            writeHere<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
+        }
+        
+    }
+    writeHere.close();
+}
+
 void show_how_program_works(){
     srand (time(NULL)); // to generate random weights
 
@@ -111,20 +135,26 @@ void show_how_program_works(){
     Policy agent = trainer.train(&time,&steps,&episodes);//uczymy nowego agenta
 
     cout << "trained for:" << time << "s" << " thats "<<episodes<<" episodes done in "<<steps<<" steps"<<endl;
+    
+    trainer.resetAgents();
 
-    cout << "\n\nPlaying game..." << endl;
-    usleep(100000);
+    Policy agent2 = trainer.train(&time,&steps,&episodes);//uczymy nowego agenta
 
-    game.show_how_it_works(agent);
+    cout << "trained for:" << time << "s" << " thats "<<episodes<<" episodes done in "<<steps<<" steps"<<endl;
+
+    // cout << "\n\nPlaying game..." << endl;
+    // usleep(100000);
+
+    // game.show_how_it_works(agent);
 }
 
 int main(int argc, char *argv[]){
-    //srand (time(NULL)); // to generate random weights
-    cout<<"we will be running "<<thread::hardware_concurrency()<<" threads"<<endl;
+    srand (time(NULL)); // to generate random weights
+    //cout<<"we will be running "<<thread::hardware_concurrency()<<" threads"<<endl;
     // finish_time_tests(8);
     // run_time_tests(9,8);
     //testSingleExaple();
-    show_how_program_works();
+    run_multithreaded_tests();
     
     return 0;
 }

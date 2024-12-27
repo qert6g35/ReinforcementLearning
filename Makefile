@@ -1,8 +1,7 @@
-
 CC = g++
 ODIR = obj
 PROG = main
-CXXFLAGS = -std=c++17
+CXXFLAGS = -std=c++17 -O2
 FLAGS = -ggdb 
 
 OBJS = $(ODIR)/main.o $(ODIR)/DQN.o $(ODIR)/matrix.o $(ODIR)/policy.o  #<< przy dodawaniu tutaj też musimy dodać jakie .o chcemy stworzyć 

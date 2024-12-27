@@ -35,12 +35,12 @@ struct Environment2D
         if(H > 0){
             lengthH = H;
         }else{
-            lengthH = 9;
+            lengthH = 50;
         }
         if(W > 0){
             lengthH = W;
         }else{
-            lengthW = 9;
+            lengthW = 50;
         }
         positionH = 0;
         positionW = 0;
@@ -191,7 +191,7 @@ struct Environment2D
                 //std::cout << "\r";
                 if(!help_me)
                     help_me = true;
-                usleep(500000);
+                //usleep(500000);
             //}
             stepper++;
             if(stepper > length()+1){

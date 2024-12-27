@@ -13,7 +13,7 @@
 #include "../include/policy.h"
 
 using namespace std;
-const bool show_output = true;
+const bool show_output = false;
 const bool dev_debug_threading = false;
 
 struct DQNMemoryUnit
@@ -92,7 +92,7 @@ public:
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
     DQNMemoryUnit choose_random_from_memory();// chooseing random memorysample
 
-    void resetAgents(int hidden_count = 8,int hidden_size = 10);
+    void resetAgents(int hidden_count = 10,int hidden_size = 10,int threads_number = thread::hardware_concurrency());
     void changeGame(int sizeH,int sizeW);
 
     bool use_memory = true;
