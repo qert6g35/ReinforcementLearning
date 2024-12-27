@@ -96,8 +96,8 @@ void run_time_tests(int startingH = 2, int startingW = 2){
 }
 
 void run_multithreaded_tests(){
-    int n_samples = 100;
-    Environment2D game = Environment2D(); 
+    int n_samples = 10;
+    //Environment2D game = Environment2D(); 
 
     std::ofstream writeHere;
     writeHere.open("DQN_multithreaded.csv", std::ios::app);
@@ -111,7 +111,7 @@ void run_multithreaded_tests(){
         for(int helper = 0; helper<n_samples;helper++){
             trainer.resetAgents(10,10,threds_number[threads_number_id]);
             Policy agent = trainer.train(&time,&steps,NULL);
-            game.show_how_it_works(agent);
+            //game.show_how_it_works(agent);
             writeHere<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
         }
         
@@ -155,8 +155,8 @@ int main(int argc, char *argv[]){
     // run_time_tests(9,8);
     //testSingleExaple();
     //show_how_program_works();
-    for(int i = 1; i < 100; i ++){
-        cout<<" STARTING TEST NO."<<i<<endl;
+    for(int i = 1; i < 1000; i ++){
+        cout<<" STARTING TEST-SET NO."<<i<<endl;
         run_multithreaded_tests();
     }
     
