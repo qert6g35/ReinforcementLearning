@@ -96,7 +96,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
 }
 
 void run_multithreaded_tests(){
-    int n_samples = 10;
+    int n_samples = 5;
     //Environment2D game = Environment2D(); 
 
     std::ofstream writeHere;
@@ -105,14 +105,19 @@ void run_multithreaded_tests(){
     DQN trainer;
     double time = 0;
     int steps = 0;
-    int threds_number[9] = {0,1,2,4,6,8,12,16,32};
-    for(int threads_number_id = 0; threads_number_id < 9; threads_number_id++){
+    int threds_number[4] = {0,2,6,12};
+    for(int threads_number_id = 0; threads_number_id < 4; threads_number_id++){
         cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
         for(int helper = 0; helper<n_samples;helper++){
             trainer.resetAgents(10,10,threds_number[threads_number_id]);
             Policy agent = trainer.train(&time,&steps,NULL);
             //game.show_how_it_works(agent);
-            writeHere<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
+            writeHere<<"0,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
+            trainer.resetAgents(10,10,threds_number[threads_number_id]);
+            trainer.make_only_one_learning_steps_ALWAYS = true;
+            agent = trainer.train(&time,&steps,NULL);
+            //game.show_how_it_works(agent);
+            writeHere<<"1,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
         }
         
     }

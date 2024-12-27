@@ -1,3 +1,4 @@
+
 #ifndef dqn
 #define dqn
 
@@ -98,43 +99,8 @@ public:
     bool use_memory = true;
     bool use_target_agent = true;
     bool use_threads = true;
+    bool make_only_one_learning_steps_ALWAYS = false;
 };
 
 
 #endif
-
-/*
-
-
-
-
-
-
-
-eksplodujący gradient, wartości zaczynają lecieć w nieskończoność + lub - 
-agent -2.34e+34 -9.606e+31 i leci const correction -81 action 0 
-agent  -3  i - 40                         
-agent -0.008 i -0.0917 corection const = -1 na action 0
-
-tutaj zawsze idziemy w lewo, mimo że epsilon jest srestartowany, na każdeym resecie jest szansa że wartości zwaracane przez agenta będą jeszcze gorsze
-w momencie resetu (kiedy zablokowany alg zreseruje wsp. eksploracji to na zaminę pogarsza ) 
-
-
-
-po zdjęciu blokady na MAX ujemną wartość (-100 było najmniejszą możliwą wartością w getMax)
-
-agent się poddał i wyrzuca -nan -nan
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/

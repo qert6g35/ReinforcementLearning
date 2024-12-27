@@ -1,14 +1,14 @@
 #include "../include/DQN.h"
 
 DQN::DQN(){
-    learning_rate = 0.00001;
+    learning_rate = 0.001;
     gamma = 0.99;
     eps = 1.0; // procent określający z jakim prawdopodobieństwem wykonamy ruch losowo
     epsDecay = 0.98; // procent maleje TODO
     target_agent_update_freaquency = 100;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
-    episode_n = 10000;
+    episode_n = 5000;
     
     
     agent = Policy(game.length(), 10,10, game.actionsCount, learning_rate);
@@ -32,7 +32,8 @@ void DQN::resetAgents(int hidden_count,int hidden_size,int threads_number){
         threads_keep_working = true;
         use_threads = true;
     }else{
-        threads_keep_working = true;
+        learning_batch_size = 1;
+        threads_keep_working = false;
         use_threads = false;
     }
     int hc = hidden_count;
@@ -89,8 +90,12 @@ bool DQN::collect_memory_step(){
 
 void DQN::learn_from_memory(int thread_id){
     float q_correction=0, max=0;
+    if(dev_debug_threading)
+        cout<<"MAIN choose_random_from_memory"<<endl;
     DQNMemoryUnit learningExample = choose_random_from_memory();
     //cout<<"computeOutput thread:"<<thread_id<<endl;
+    if(dev_debug_threading)
+        cout<<"MAIN get max"<<endl;
     if(use_target_agent){
         target_agent.computeOutput(learningExample.game_next).getMax( NULL, NULL, &max);
     }else{
@@ -102,7 +107,8 @@ void DQN::learn_from_memory(int thread_id){
     }else{
         q_correction = learningExample.reward + gamma*max;
     }
-
+    if(dev_debug_threading)
+        cout<<"MAIN agent.learn"<<endl;
     agent.learn(q_correction,learningExample.action,learningExample.game,true);
 }
 
@@ -269,11 +275,15 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             //cout<<"start sampling"<<endl
             if(dev_debug_threading)
                 cout<<"MAIN_TRAIN collecting memory steps, steps:"<<steps<<endl;
-            for(int b = 0; b<learning_batch_size && done == false; b++){
+            if(make_only_one_learning_steps_ALWAYS){
                 steps++;
                 done = collect_memory_step();
+            }else{
+                for(int b = 0; b<learning_batch_size && done == false; b++){
+                    steps++;
+                    done = collect_memory_step();
+                }
             }
-            //cout<<"start learning"<<endl;
             if(use_threads){
                 
                 if(dev_debug_threading)
@@ -364,6 +374,8 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     }
                 }
             }else{
+                if(dev_debug_threading)
+                        cout<<"MAIN learn_from_memory"<<endl;
                 learn_from_memory(-1);   
                 if(game.check_if_good_enougth(&agent)){
                     network_learned = true;
