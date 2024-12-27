@@ -295,6 +295,8 @@ void Policy::change_weights_by_other_policy(Policy * updater){
     }
 }
 
+
+
 void Policy::clear_weigths_memory(){
     //std::cout<<"clear_weigths_memory PRE"<<std::endl;
     dJdW.clear();

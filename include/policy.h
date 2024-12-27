@@ -24,7 +24,7 @@ private:
     //  przechowywanie danych działania
     Matrix X, Y;
     std::vector<Matrix> H;
-    std::vector<Matrix> dJdW, dJdB;
+    std::vector<Matrix> dJdW, dJdB ,dJdW_storage, dJdB_storage ;
 
     //  miejsce na przechowywanie danych przez każdy z wątków
     //std::vector<std::thread> threads;

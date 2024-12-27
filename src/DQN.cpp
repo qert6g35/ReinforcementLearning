@@ -16,7 +16,7 @@ DQN::DQN(){
     network_learned = false;
     //visited = vector<bool>(game.length(),false);
     if(use_threads){
-        learning_batch_size = thread::hardware_concurrency() -1;// << ilość wątków jakie będą pracowąć podczas uczenia
+        learning_batch_size = thread::hardware_concurrency();// << ilość wątków jakie będą pracowąć podczas uczenia
         update_local_agent_frequency = 10; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. (ile mamy czekać między updateami thread_agentow, względem głównego)
     }else{
         threads_keep_working = false;
@@ -94,7 +94,7 @@ void DQN::learn_from_memory(int thread_id){
         q_correction = learningExample.reward + gamma*max;
     }
 
-    agent.learn(q_correction,learningExample.action,learningExample.game);
+    agent.learn(q_correction,learningExample.action,learningExample.game,true);
 }
 
 
@@ -349,7 +349,13 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     }
                 }
             }else{
-                learn_from_memory(-1);    
+                learn_from_memory(-1);   
+                if(game.check_if_good_enougth(&agent)){
+                    network_learned = true;
+                    final_agent = agent;
+                    cout<<"MAIN HAVE A SOLUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+                    //showBestChoicesFor(local_agent);
+                } 
             }
             if(use_target_agent)
                 if(target_agent_count_down <= 0){
@@ -447,6 +453,8 @@ DQNMemoryUnit DQN::choose_random_from_memory(){
 }
 
 //TODO
+
+// dodać system anti-corupted (* wywalamy czas uczenia na inf/-1/9999999 i zwracamy pierwotną postać sieci gdy otrzymujemy nany na wyjściu )
 
 // nie ma co updateować agenta w wątkach trzeba jedynie przekazać pochodne po W/B i main to sobie zupdateuje. ???
 
