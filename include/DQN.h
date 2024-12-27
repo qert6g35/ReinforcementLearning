@@ -14,7 +14,7 @@
 
 using namespace std;
 const bool show_output = true;
-const bool dev_debug_threading = true;
+const bool dev_debug_threading = false;
 
 struct DQNMemoryUnit
 {
@@ -46,6 +46,7 @@ private:
     const int threads_numer = 65;
     std::thread threads[65];
     bool thread_finished_learning[65];
+    bool thread_finished_updateing[65];
     std::mutex change_weigths_of_global_agent;
     // std::mutex safe_to_global_dJdB;
     int learning_batch_size;

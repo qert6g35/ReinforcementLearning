@@ -16,8 +16,8 @@ DQN::DQN(){
     network_learned = false;
     //visited = vector<bool>(game.length(),false);
     if(use_threads){
-        learning_batch_size = 2;//thread::hardware_concurrency() -1;// << ilość wątków jakie będą pracowąć podczas uczenia
-        update_local_agent_frequency = 0; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. 
+        learning_batch_size = thread::hardware_concurrency() -1;// << ilość wątków jakie będą pracowąć podczas uczenia
+        update_local_agent_frequency = 10; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. (ile mamy czekać między updateami thread_agentow, względem głównego)
     }else{
         threads_keep_working = false;
         learning_batch_size = 1;
@@ -105,6 +105,7 @@ void DQN::makeDQN_Thread(int thread_idx){
     //Policy local_target_agent = target_agent.copy();
     DQNMemoryUnit learningExample;
     float q_correction=0, max=0;
+    bool update_local_agent_flag = update_local_agent;
 
     std::unique_lock<std::mutex> start_lck(start_threaded_learning_mtx);
     start_lck.unlock();
@@ -119,6 +120,7 @@ void DQN::makeDQN_Thread(int thread_idx){
         
         start_lck.lock(); //czekamy aż Master powie że można zacząć się uczyć
         start_threaded_learning.wait(start_lck,[&]{return !thread_finished_learning[thread_idx];});//czekamy aż Master powie że można zacząć się uczyć
+        update_local_agent_flag = update_local_agent;
         start_lck.unlock();
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" started next learning session"<<endl;
@@ -169,6 +171,7 @@ void DQN::makeDQN_Thread(int thread_idx){
 
         thread_finished_learning[thread_idx] = true; // zaznaczamy że skończyliśmy uczyć
         finish_lck.lock();
+
         finished_threaded_learning.notify_all();
         finish_lck.unlock();
         
@@ -183,14 +186,14 @@ void DQN::makeDQN_Thread(int thread_idx){
         
         
         //czekamy aż Master powie że można zupdateować local agenta
-        if(update_local_agent){
+        if(update_local_agent_flag){
             if(dev_debug_threading)
                 cout<<"therad "<<thread_idx<<" whaitibng for weigths update approval (pre LOCK)"<<endl;
             start_ulck.lock(); 
             if(dev_debug_threading)
                 cout<<"therad "<<thread_idx<<" whaitibng for weigths update approval (post LOCK)"<<endl;
             start_threaded_updateing.wait(start_ulck,[&]{
-                return !thread_finished_learning[thread_idx];
+                return !thread_finished_updateing[thread_idx];
             });
             start_ulck.unlock();
 
@@ -202,7 +205,7 @@ void DQN::makeDQN_Thread(int thread_idx){
             
 
             
-            thread_finished_learning[thread_idx] = true; // zaznaczamy że skończyliśmy udate
+            thread_finished_updateing[thread_idx] = true; // zaznaczamy że skończyliśmy udate
             finish_ulck.lock();
             if(dev_debug_threading)
                 cout<<"therad "<<thread_idx<<" pre notify all"<<endl;
@@ -240,6 +243,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     if(use_threads)
         for(int thread_id = 0; thread_id < learning_batch_size; thread_id++){
             thread_finished_learning[thread_id] = true;
+            thread_finished_updateing[thread_id] = true;
             threads[thread_id] = std::thread([this,thread_id](){this->makeDQN_Thread(thread_id);});
         }
 
@@ -267,19 +271,28 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     if(dev_debug_threading)
                         cout<<"MAIN_TRAIN inform that thread:"<<b<<" can start lerning:"<<!thread_finished_learning[b]<<endl;
                 }
+                if(update_countdown == 0){// steting up what should happend after learning
+                    update_countdown = update_local_agent_frequency;
+                    update_local_agent = true;
+                }else{
+                    update_countdown--;
+                }
                 start_threaded_learning.notify_all();// powiadamiamy wszystkie wątki że można uczyć
                 s_lck.unlock();
-                
-                
+
                 if(dev_debug_threading)
                     cout<<"MAIN_TRAIN started whaiting for threaded learning to end"<<endl;
                 f_lck.lock();
                 finished_threaded_learning.wait(f_lck,[&](){
                     for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
                         if(thread_finished_learning[b] == false){
+                            if(dev_debug_threading)
+                                cout<<"MAIN_TRAIN thread "<<b<<" didnt finish learning"<<endl;
                             return false;
                         }
                     }
+                    if(dev_debug_threading)
+                        cout<<"MAIN_TRAIN learning finished notified"<<endl;
                     return true;
                 });
                 f_lck.unlock();
@@ -287,13 +300,13 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                 if(update_local_agent){
                     if(dev_debug_threading)
                         cout<<"MAIN_TRAIN inform we can start updateing (PRE LOCK)"<<endl;
+                    for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
+                        thread_finished_updateing[b] = false;// ustawiamy flagi updateu 
+                    }
                     start_lck.lock();
                     if(dev_debug_threading)
                         cout<<"MAIN_TRAIN inform we can start updateing (POST LOCK)"<<endl;
                     // powiadamiamy wszystkie wątki że można zupdateować swojego local agenta
-                    for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                        thread_finished_learning[b] = false;// ustawiamy flagi updateu 
-                    }
                     start_threaded_updateing.notify_all();// powiadamiamy wszystkie wątki że można zupdateować swojego local agenta
                     start_lck.unlock();
                     
@@ -313,7 +326,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                         if(dev_debug_threading)
                             cout<<"MAIN_TRAIN checking if threads ended"<<endl;
                         for(int b = 0; b<learning_batch_size  && b<memory.size(); b++){
-                            if(thread_finished_learning[b] == false){
+                            if(thread_finished_updateing[b] == false){
                                 if(dev_debug_threading)
                                     cout<<"MAIN_TRAIN thread "<<b<<" didnt finish"<<endl;
                                 return false;
@@ -325,7 +338,8 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     });
                     finish_lck.unlock();
                     update_local_agent = false;
-                    cout<<"MAIN_TRAIN post w8ing for update END"<<endl;
+                    if(dev_debug_threading)
+                        cout<<"MAIN_TRAIN post w8ing for update END"<<endl;
                 }else{
                     if(game.check_if_good_enougth(&agent)){
                         network_learned = true;
@@ -333,12 +347,6 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                         cout<<"MAIN HAVE A SOLUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
                         //showBestChoicesFor(local_agent);
                     }
-                }
-                if(update_countdown == 0){
-                    update_countdown = update_local_agent_frequency;
-                    update_local_agent = true;
-                }else{
-                    update_countdown--;
                 }
             }else{
                 learn_from_memory(-1);    
