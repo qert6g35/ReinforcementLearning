@@ -3,7 +3,7 @@ import subprocess
 # Path to your compiled C++ program (e.g., "program.exe" on Windows or "program" on Linux/Mac)
 cpp_program_path = "./main"
 
-for i in range(0,10000):
+for i in range(0,1000000):
     print(" STARTING TEST-SET NO.",i)
     # Run the C++ program and wait for it to finish
     process = subprocess.Popen(cpp_program_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
