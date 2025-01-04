@@ -99,7 +99,7 @@ public:
     bool use_memory = true;
     bool use_target_agent = true;
     bool use_threads = true;
-    bool make_only_one_learning_steps_ALWAYS = false;
+    bool make_only_one_learning_steps_ALWAYS = true;
 };
 
 

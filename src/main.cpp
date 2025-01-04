@@ -105,7 +105,7 @@ void run_multithreaded_tests(){
     DQN trainer;
     double time = 0;
     int steps = 0;
-    int threds_number[10] = {0,1,2,4,6,8,12,16,24,32};
+    int threds_number[11] = {0,1,2,4,6,8,12,16,24,32};
     for(int threads_number_id = 0; threads_number_id < 10; threads_number_id++){
         cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
         for(int helper = 0; helper<n_samples;helper++){
@@ -113,11 +113,36 @@ void run_multithreaded_tests(){
             Policy agent = trainer.train(&time,&steps,NULL);
             //game.show_how_it_works(agent);
             writeHere<<"0,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
-            trainer.resetAgents(10,10,threds_number[threads_number_id]);
+        }
+        
+    }
+    writeHere.close();
+}
+
+void run_multithreaded_tests_for_number_of_env_stepping(){
+    int n_samples = 5;
+    //Environment2D game = Environment2D(); 
+
+    std::ofstream writeHere;
+    writeHere.open("DQN_multithreaded_COMPARE_ENV_STEPPING_METHOOD.csv", std::ios::app);
+    
+    DQN trainer;
+    double time = 0;
+    int steps = 0;
+    for(int threads_number_id = 0; threads_number_id < 10; threads_number_id++){
+        //cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
+        for(int helper = 0; helper<n_samples;helper++){
+            trainer.make_only_one_learning_steps_ALWAYS = false;
+            trainer.resetAgents(10,10);
+            Policy agent = trainer.train(&time,&steps,NULL);
+            //game.show_how_it_works(agent);
+            writeHere<<"0,"<<time<<","<<steps<<endl;
+
             trainer.make_only_one_learning_steps_ALWAYS = true;
+            trainer.resetAgents(10,10);
             agent = trainer.train(&time,&steps,NULL);
             //game.show_how_it_works(agent);
-            writeHere<<"1,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
+            writeHere<<"1,"<<time<<","<<steps<<endl;
         }
         
     }
