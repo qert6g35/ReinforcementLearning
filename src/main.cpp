@@ -96,7 +96,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
 }
 
 void run_multithreaded_tests(){
-    int n_samples = 5;
+    int n_samples = 10;
     //Environment2D game = Environment2D(); 
 
     std::ofstream writeHere;
@@ -105,8 +105,8 @@ void run_multithreaded_tests(){
     DQN trainer;
     double time = 0;
     int steps = 0;
-    int threds_number[11] = {0,1,2,4,6,8,12,16,24,32};
-    for(int threads_number_id = 0; threads_number_id < 10; threads_number_id++){
+    int threds_number[12] = {128,64,0,1,2,4,6,8,12,16,24,32};
+    for(int threads_number_id = 0; threads_number_id < 12; threads_number_id++){
         cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
         for(int helper = 0; helper<n_samples;helper++){
             trainer.resetAgents(10,10,threds_number[threads_number_id]);

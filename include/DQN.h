@@ -44,10 +44,10 @@ private:
     Policy target_agent;
     Policy final_agent;
 
-    const int threads_numer = 65;
-    std::thread threads[65];
-    bool thread_finished_learning[65];
-    bool thread_finished_updateing[65];
+    const int threads_numer = 129;
+    std::thread threads[129];
+    bool thread_finished_learning[129];
+    bool thread_finished_updateing[129];
     std::mutex change_weigths_of_global_agent;
     // std::mutex safe_to_global_dJdB;
     int learning_batch_size;
