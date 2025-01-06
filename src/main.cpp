@@ -96,7 +96,7 @@ void run_time_tests(int startingH = 2, int startingW = 2){
 }
 
 void run_multithreaded_tests(){
-    int n_samples = 10;
+    int n_samples = 1;
     //Environment2D game = Environment2D(); 
 
     std::ofstream writeHere;
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]){
     //show_how_program_works();
     // for(int i = 1; i < 1000; i ++){
     //     cout<<" STARTING TEST-SET NO."<<i<<endl;
-         run_multithreaded_tests();
+    run_multithreaded_tests();
     // }
     return 0;
 }

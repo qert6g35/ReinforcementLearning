@@ -8,6 +8,7 @@
 #include <random>
 #include <thread>
 #include <functional>
+#include <bits/stdc++.h> 
 
 #include "../include/matrix.h"
 #include "../include/environment.h"
@@ -95,6 +96,7 @@ public:
 
     void resetAgents(int hidden_count = 10,int hidden_size = 10,int threads_number = thread::hardware_concurrency());
     void changeGame(int sizeH,int sizeW);
+    bool have_any_nan(Policy agent);
 
     bool use_memory = true;
     bool use_target_agent = true;

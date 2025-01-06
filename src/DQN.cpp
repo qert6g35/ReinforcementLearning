@@ -8,7 +8,6 @@ DQN::DQN(){
     target_agent_update_freaquency = 100;
     target_agent_count_down = target_agent_update_freaquency;
     n_steps_in_one_go = 10 * game.length();
-    episode_n = 5000;
     
     
     agent = Policy(game.length(), 10,10, game.actionsCount, learning_rate);
@@ -21,6 +20,10 @@ DQN::DQN(){
     }else{
         threads_keep_working = false;
         learning_batch_size = 1;
+    }
+    episode_n = int(5000 / log2(learning_batch_size));
+    if(episode_n < 1000){
+        episode_n = 1000;
     }
 }
 
@@ -50,6 +53,10 @@ void DQN::resetAgents(int hidden_count,int hidden_size,int threads_number){
         target_agent = agent.copy();
     }
     memory.clear();
+    episode_n = int(5000 / log2(learning_batch_size));
+    if(episode_n < 1000){
+        episode_n = 1000;
+    }
 }
 
 void DQN::changeGame(int sizeH,int sizeW){
@@ -420,7 +427,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             }
         }
 
-        if(network_learned){
+        if(network_learned || have_any_nan(agent)){
             break;
         }
     }
@@ -492,6 +499,17 @@ DQNMemoryUnit DQN::choose_random_from_memory(){
         //cout<<"getting random from memory, size "<<memory.size()<<endl;
         return memory[(int)(rand() % memory.size())];
     //return memory[memory.size()-1-give_last];
+}
+
+bool DQN::have_any_nan(Policy agent){ 
+    int action = 0;
+    for(int h = 0;h<game.lengthH || h<game.lengthH ;h++){
+        agent.computeOutput_fast(game.toGameRepresentation(h,h)).getMax( NULL, &action,NULL);
+        if(isnan(action)){
+            return true;
+        }
+    }
+    return false;
 }
 
 //TODO
