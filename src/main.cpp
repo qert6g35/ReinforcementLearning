@@ -10,6 +10,15 @@
 
 using namespace std;
 
+void shuffle(int arr[], int n) {
+    for (int i = n - 1; i >= 1; i--) {
+        int j = rand() % (i + 1);
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+
 void testSingleExaple(){
     int n_samples = 50;
     int instance_max_size = 9;
@@ -104,8 +113,16 @@ void run_multithreaded_tests(){
     
     DQN trainer;
     double time = 0;
+    double prev_time = 2;
     int steps = 0;
     int threds_number[12] = {128,64,0,1,2,4,6,8,12,16,24,32};
+    shuffle(threds_number,12);
+    // cout<<"start sampling in order:"<<endl;
+    // for(int threads_number_id = 0; threads_number_id < 12; threads_number_id++){
+    //     cout<<threds_number[threads_number_id]<<" threds"<<endl;
+    // }
+    // sleep(5);
+    //return;
     for(int threads_number_id = 0; threads_number_id < 12; threads_number_id++){
         cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
         for(int helper = 0; helper<n_samples;helper++){
@@ -113,6 +130,10 @@ void run_multithreaded_tests(){
             Policy agent = trainer.train(&time,&steps,NULL);
             //game.show_how_it_works(agent);
             writeHere<<"0,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
+            if((time < 0 && prev_time < 0) || (time < 0 && steps >= 1000000) ){
+                cout<<"LEARNING JAMMED"<<endl;
+                return;
+            }
         }
         
     }
