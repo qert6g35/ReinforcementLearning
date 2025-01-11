@@ -119,6 +119,32 @@ void DQN::learn_from_memory(int thread_id){
     agent.learn(q_correction,learningExample.action,learningExample.game,true);
 }
 
+void DQN::collect_time(bool start_else_end,int thread_id){
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    std::chrono::_V2::system_clock::time_point finished_main_thread_actions = high_resolution_clock::now();
+    duration<double, std::milli> t =  finished_main_thread_actions - start_learning_time;
+    if(start_else_end){
+        learning_times[0][thread_id + 1] = t.count(); // true czas startu procesu
+        //cout<<"colected time: "<<learning_times[0][learning_batch_size + 1]<<endl;
+    }else{
+        learning_times[1][thread_id + 1] = t.count(); // false czas końca procesu
+        //cout<<"colected time: "<<learning_times[1][learning_batch_size + 1]<<endl;
+    }
+}
+
+void DQN::safe_data_to_file(bool is_update_times){
+    if(is_update_times){
+            thread_times_file<<"U,";
+        }else{
+            thread_times_file<<"L,";
+        }
+    for(int t_id =0; t_id < learning_batch_size + 1;t_id ++){
+        thread_times_file<<learning_times[0][t_id]<<","<<learning_times[0][t_id]<<",";
+    }
+    thread_times_file<<endl;
+}
+
 
 void DQN::makeDQN_Thread(int thread_idx){
     if(dev_debug_threading)
@@ -147,7 +173,9 @@ void DQN::makeDQN_Thread(int thread_idx){
         start_lck.unlock();
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" started next learning session"<<endl;
-        //start_lck.unlock();
+
+        collect_time(false,thread_idx); // zapisujemy czas rozpoczęcia uczenia
+
         if(!threads_keep_working){
             return;
         }
@@ -207,7 +235,8 @@ void DQN::makeDQN_Thread(int thread_idx){
             //showBestChoicesFor(local_agent);
         }
         
-        
+        collect_time(false,thread_idx); // zapisujemy czas zakończenia uczenia
+
         //czekamy aż Master powie że można zupdateować local agenta
         if(update_local_agent_flag){
             if(dev_debug_threading)
@@ -220,6 +249,8 @@ void DQN::makeDQN_Thread(int thread_idx){
             });
             start_ulck.unlock();
 
+            collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
+
             
             //lck.unlock();true== 0){
             local_agent.updateParameters(&agent);
@@ -229,23 +260,30 @@ void DQN::makeDQN_Thread(int thread_idx){
 
             
             thread_finished_updateing[thread_idx] = true; // zaznaczamy że skończyliśmy udate
+            collect_time(false,thread_idx); // zapisujemy czas zakończenia updateowania
             finish_ulck.lock();
-            if(dev_debug_threading)
+            if(dev_debug_threading){
                 cout<<"therad "<<thread_idx<<" pre notify all"<<endl;
+            }
             finished_threaded_updateing.notify_all();
-            if(dev_debug_threading)
+            if(dev_debug_threading){
                 cout<<"therad "<<thread_idx<<" post notify all"<<endl;
+            }
             finish_ulck.unlock();
         }
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" whaitibng for next learning session to start"<<endl;
-        //czekamy aż Master powie że można zacząć się uczyć dalej
     }
     if(dev_debug_threading)
         cout<<"therad "<<thread_idx<<" STOPED "<<endl;
 }
 
 Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
+    using std::chrono::high_resolution_clock;
+    
+    //thread_times_file.open("work_balance_data/"+std::to_string(folder_to_safe_to)+"/threadsTime_"+ std::to_string(learning_batch_size) + ".csv", std::ios::app);
+    thread_times_file.open("work_balance_data/threadsTime_"+ std::to_string(learning_batch_size) + ".csv", std::ios::app);
+    thread_times_file<<"started working"<<endl;;
     final_agent = agent.copy();
     assert(learning_batch_size <= threads_numer);
     bool whait_for_update = false;
@@ -272,11 +310,11 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             thread_finished_updateing[thread_id] = true;
             threads[thread_id] = std::thread([this,thread_id](){this->makeDQN_Thread(thread_id);});
         }
-
+    start_learning_time = high_resolution_clock::now();
     for (i=0 ; i<episode_n ; i++){
         steps=0;
         done=false;
-        
+        collect_time(true,-1); // zapisujemy czas o starcie pracy głównego wątku 
         game.reset();
         while(!done && steps<n_steps_in_one_go && network_learned == false){
             //cout<<"start sampling"<<endl
@@ -291,6 +329,8 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     done = collect_memory_step();
                 }
             }
+            collect_time(false,-1); // zapisujemy czas o końcu pracy głównego wątku 
+
             if(use_threads){
                 
                 if(dev_debug_threading)
@@ -326,6 +366,11 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     return true;
                 });
                 f_lck.unlock();
+
+                //TODO zapisujemy do pliku ile czasu wyniosła nas główna pętla
+                safe_data_to_file(false);
+
+                collect_time(true,-1);// zapisujemy czas początku prac main thread przy update lub czas startu zbierania tracea
                 
                 if(update_local_agent){
                     if(dev_debug_threading)
@@ -348,6 +393,9 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                             cout<<"MAIN HAVE A SOLUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
                         //showBestChoicesFor(local_agent);
                     }
+
+                    collect_time(false,-1);// koniec robót main thread podczas updateowania agenta
+
                     if(dev_debug_threading)
                         cout<<"MAIN_TRAIN w8ing for threads update  (PRE LOCK)"<<endl;
                     finish_lck.lock();// czekamy na koniec updateowania agenta
@@ -371,6 +419,13 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     update_local_agent = false;
                     if(dev_debug_threading)
                         cout<<"MAIN_TRAIN post w8ing for update END"<<endl;
+
+
+                //TODO zapisujemy do pliku ile czasu wyniosła nas główna pętla
+                safe_data_to_file(true);
+
+                collect_time(true,-1);// zapisujemy czas początku prac main thread przy głównej pentli (zbieraniu tracea)
+                    
                 }else{
                     if(game.check_if_good_enougth(&agent)){
                         network_learned = true;
@@ -380,6 +435,9 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                         //showBestChoicesFor(local_agent);
                     }
                 }
+
+                
+                
             }else{
                 if(dev_debug_threading)
                         cout<<"MAIN learn_from_memory"<<endl;
@@ -469,6 +527,9 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
         *steps_done = done_counter;
     if(episodes != NULL)
         *episodes = i;
+
+    thread_times_file.close();
+    
     return final_agent;
 }
 
@@ -521,3 +582,4 @@ bool DQN::have_any_nan(Policy agent){
 // main nie powinien czekać aż wątki skończą updateować, przystepujemy od razu do zbieranie stepsów ? 
 
 // dodać nową metodę updateowania local agenta !!!! ??? myślałem żeby każdy wątek uczył swojego przez x okrążeń my w tym czasie zbieramy tracy i w pewnym momencie stopujemy i synchronizujemy globalnego agenmta względem tego co ejst na poszczególnych wątkach
+void collect_time(bool start_else_end,int thread_id);

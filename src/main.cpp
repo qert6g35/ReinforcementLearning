@@ -104,18 +104,20 @@ void run_time_tests(int startingH = 2, int startingW = 2){
     //trainer.train(&time);//uczymy nowego agenta
 }
 
-void run_multithreaded_tests(){
+void run_multithreaded_tests(int test_num){
     int n_samples = 1;
     //Environment2D game = Environment2D(); 
 
     std::ofstream writeHere;
-    writeHere.open("DQN_multithreaded.csv", std::ios::app);
+    //writeHere.open("work_balance_data/"+std::to_string(test_num)+"/DQN_multithreaded.csv", std::ios::app);
+    writeHere.open("work_balance_data/DQN_multithreaded.csv", std::ios::app);
     
     DQN trainer;
+    trainer.folder_to_safe_to = test_num;
     double time = 0;
     double prev_time = 2;
     int steps = 0;
-    int threds_number[12] = {128,64,0,1,2,4,6,8,12,16,24,32};
+    int threds_number[12] = {128,64,1,2,4,6,8,12,16,24,32};
     shuffle(threds_number,12);
     // cout<<"start sampling in order:"<<endl;
     // for(int threads_number_id = 0; threads_number_id < 12; threads_number_id++){
@@ -125,9 +127,11 @@ void run_multithreaded_tests(){
     //return;
     for(int threads_number_id = 0; threads_number_id < 12; threads_number_id++){
         cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
+        trainer.resetAgents(10,10,threds_number[threads_number_id]);
+        Policy agent_prime = trainer.get_agent().copy();
         for(int helper = 0; helper<n_samples;helper++){
-            trainer.resetAgents(10,10,threds_number[threads_number_id]);
-            Policy agent = trainer.train(&time,&steps,NULL);
+            trainer.set_agent(agent_prime.copy());
+            trainer.train(&time,&steps,NULL);
             //game.show_how_it_works(agent);
             writeHere<<"0,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
             if((time < 0 && prev_time < 0) || (time < 0 && steps >= 1000000) ){
@@ -208,7 +212,7 @@ int main(int argc, char *argv[]){
     //show_how_program_works();
     // for(int i = 1; i < 1000; i ++){
     //     cout<<" STARTING TEST-SET NO."<<i<<endl;
-    run_multithreaded_tests();
+    run_multithreaded_tests(std::stoi(argv[1]));
     // }
     return 0;
 }

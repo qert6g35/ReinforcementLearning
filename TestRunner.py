@@ -6,7 +6,7 @@ cpp_program_path = "./main"
 for i in range(0,1000000):
     print(" STARTING TEST-SET NO.",i)
     # Run the C++ program and wait for it to finish
-    process = subprocess.Popen(cpp_program_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen([cpp_program_path, str(i)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Wait for the process to complete
     stdout, stderr = process.communicate()
     # Print output and error (if any)

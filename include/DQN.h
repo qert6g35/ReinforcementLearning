@@ -45,10 +45,15 @@ private:
     Policy target_agent;
     Policy final_agent;
 
-    const int threads_numer = 129;
-    std::thread threads[129];
-    bool thread_finished_learning[129];
-    bool thread_finished_updateing[129];
+    std::ofstream thread_times_file;   
+    static const int threads_numer = 129;
+    std::thread threads[threads_numer];
+    std::chrono::_V2::system_clock::time_point start_learning_time;
+    long double learning_times[2][threads_numer]; 
+    // times[0][cpu] - start time 
+    // times[1][cpu] - stop  time 
+    bool thread_finished_learning[threads_numer];
+    bool thread_finished_updateing[threads_numer];
     std::mutex change_weigths_of_global_agent;
     // std::mutex safe_to_global_dJdB;
     int learning_batch_size;
@@ -90,6 +95,14 @@ public:
     void learn_from_memory(int thread_id);
     void makeDQN_Thread(int thread_idx);
 
+    Policy get_agent(){
+        return agent;
+    }
+
+    void set_agent(Policy agent_to_set){
+        this->agent = agent_to_set;
+    }
+
     //* helper/additional functions 
     void showBestChoicesFor(Policy agent);// Function presents what decision agent will choose for each game-state
     DQNMemoryUnit choose_random_from_memory();// chooseing random memorysample
@@ -98,6 +111,10 @@ public:
     void changeGame(int sizeH,int sizeW);
     bool have_any_nan(Policy agent);
 
+    void collect_time(bool start_else_end,int thread_id);
+    void safe_data_to_file(bool is_update_times);
+
+    int folder_to_safe_to = 0;
     bool use_memory = true;
     bool use_target_agent = true;
     bool use_threads = true;
