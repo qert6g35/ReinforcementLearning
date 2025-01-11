@@ -1,2 +1,4 @@
 obj/
 *.exe
+work_balance_data/*
+work_balance_data/

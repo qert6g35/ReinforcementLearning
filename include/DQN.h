@@ -46,7 +46,7 @@ private:
     Policy final_agent;
 
     std::ofstream thread_times_file;   
-    static const int threads_numer = 129;
+    static const int threads_numer = 130;
     std::thread threads[threads_numer];
     std::chrono::_V2::system_clock::time_point start_learning_time;
     long double learning_times[2][threads_numer]; 

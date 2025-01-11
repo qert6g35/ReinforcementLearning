@@ -17,6 +17,10 @@ DQN::DQN(){
     if(use_threads){
         learning_batch_size = thread::hardware_concurrency();// << ilość wątków jakie będą pracowąć podczas uczenia
         update_local_agent_frequency = 10; //! UWAGA << zmienna odpowiedzialna za częstotliwość updateowania local_agentów przy uczeniu wielowątkowym. (ile mamy czekać między updateami thread_agentow, względem głównego)
+        for(int i =0 ; i < 129; i++){
+            learning_times[0][i] = 0.0;
+            learning_times[1][i] = 0.0;
+        }
     }else{
         threads_keep_working = false;
         learning_batch_size = 1;
@@ -134,13 +138,14 @@ void DQN::collect_time(bool start_else_end,int thread_id){
 }
 
 void DQN::safe_data_to_file(bool is_update_times){
+    thread_times_file<<to_string(folder_to_safe_to)<<","<<to_string(learning_batch_size);
     if(is_update_times){
-            thread_times_file<<"U,";
+            thread_times_file<<",U,";
         }else{
-            thread_times_file<<"L,";
+            thread_times_file<<",L,";
         }
-    for(int t_id =0; t_id < learning_batch_size + 1;t_id ++){
-        thread_times_file<<learning_times[0][t_id]<<","<<learning_times[0][t_id]<<",";
+    for(int t_id =0; t_id < 128 + 1;t_id ++){
+        thread_times_file<<learning_times[0][t_id]<<","<<learning_times[1][t_id]<<",";
     }
     thread_times_file<<endl;
 }
@@ -282,7 +287,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     using std::chrono::high_resolution_clock;
     
     //thread_times_file.open("work_balance_data/"+std::to_string(folder_to_safe_to)+"/threadsTime_"+ std::to_string(learning_batch_size) + ".csv", std::ios::app);
-    thread_times_file.open("work_balance_data/threadsTime_"+ std::to_string(learning_batch_size) + ".csv", std::ios::app);
+    thread_times_file.open("work_balance_data/threadsTime.csv", std::ios::app);
     thread_times_file<<"started working"<<endl;;
     final_agent = agent.copy();
     assert(learning_batch_size <= threads_numer);
