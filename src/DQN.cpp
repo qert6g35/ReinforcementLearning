@@ -158,7 +158,7 @@ void DQN::safe_data_to_file(bool is_update_times){
                 LFT_threadedID = t_id;
         }
     }
-    thread_times_file<<EST_threaded<<","<<learning_times[0][LFT_threadedID] + learning_times[1][LFT_threadedID] - EST_threaded<<",";
+    thread_times_file<<EST_threaded<<","<<learning_times[0][LFT_threadedID] + learning_times[1][LFT_threadedID] - EST_threaded;
     thread_times_file<<endl;
 }
 
@@ -191,7 +191,7 @@ void DQN::makeDQN_Thread(int thread_idx){
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" started next learning session"<<endl;
 
-        std::chrono::_V2::system_clock::time_point tp_saved = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia uczenia
+        std::chrono::_V2::system_clock::time_point tp_saved_threaded = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia uczenia
 
         if(!threads_keep_working){
             return;
@@ -239,6 +239,7 @@ void DQN::makeDQN_Thread(int thread_idx){
 
         thread_finished_learning[thread_idx] = true; // zaznaczamy że skończyliśmy uczyć
         finish_lck.lock();
+        collect_time(false,thread_idx,tp_saved_threaded); // zapisujemy czas zakończenia uczenia
         finished_threaded_learning.notify_all();
         finish_lck.unlock();
         
@@ -251,8 +252,6 @@ void DQN::makeDQN_Thread(int thread_idx){
                 cout<<"therad "<<thread_idx<<" HAVE A SOLUTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
             //showBestChoicesFor(local_agent);
         }
-        
-        collect_time(false,thread_idx,tp_saved); // zapisujemy czas zakończenia uczenia
 
         //czekamy aż Master powie że można zupdateować local agenta
         if(update_local_agent_flag){
@@ -266,7 +265,7 @@ void DQN::makeDQN_Thread(int thread_idx){
             });
             start_ulck.unlock();
 
-            tp_saved = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
+            tp_saved_threaded = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
 
             
             //lck.unlock();true== 0){
@@ -277,11 +276,12 @@ void DQN::makeDQN_Thread(int thread_idx){
 
             
             thread_finished_updateing[thread_idx] = true; // zaznaczamy że skończyliśmy udate
-            collect_time(false,thread_idx,tp_saved); // zapisujemy czas zakończenia updateowania
+            
             finish_ulck.lock();
             if(dev_debug_threading){
                 cout<<"therad "<<thread_idx<<" pre notify all"<<endl;
             }
+            collect_time(false,thread_idx,tp_saved_threaded); // zapisujemy czas zakończenia updateowania
             finished_threaded_updateing.notify_all();
             if(dev_debug_threading){
                 cout<<"therad "<<thread_idx<<" post notify all"<<endl;
@@ -322,8 +322,8 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     finish_lck.unlock();
     if(use_threads)
         for(int i =0 ; i < threads_numer; i++){
-            learning_times[0][i] = 0.0;
-            learning_times[1][i] = 0.0;
+            learning_times[0][i] = -1.0;
+            learning_times[1][i] = -1.0;
         }
         for(int thread_id = 0; thread_id < learning_batch_size; thread_id++){
             thread_finished_learning[thread_id] = true;
@@ -331,10 +331,11 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
             threads[thread_id] = std::thread([this,thread_id](){this->makeDQN_Thread(thread_id);});
         }
     start_learning_time = high_resolution_clock::now();
+    tp_saved = collect_time(true,-1); // zapisujemy czas o starcie pracy głównego wątku 
     for (i=0 ; i<episode_n ; i++){
         steps=0;
         done=false;
-        tp_saved = collect_time(true,-1); // zapisujemy czas o starcie pracy głównego wątku 
+        
         game.reset();
         while(!done && steps<n_steps_in_one_go && network_learned == false){
             //cout<<"start sampling"<<endl
@@ -388,7 +389,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                 f_lck.unlock();
 
                 //TODO zapisujemy do pliku ile czasu wyniosła nas główna pętla
-                safe_data_to_file(false);
+                safe_data_to_file(false);//!                                                                         zapis czasu
 
                 tp_saved = collect_time(true,-1);// zapisujemy czas początku prac main thread przy update lub czas startu zbierania tracea
                 

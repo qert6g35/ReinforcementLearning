@@ -129,6 +129,7 @@ void run_multithreaded_tests(){
     for(int helper = 0; helper<n_samples;helper++){
         trainer.resetAgents(10,10);
         Policy agent_prime = trainer.get_agent().copy();
+        cout<<"\n start loop "<<helper<<" \n"<<endl;
         for(int threads_number_id = 0; threads_number_id < 11; threads_number_id++){
             cout<<"start sampling for "<<threds_number[threads_number_id]<<" threds"<<endl;
             trainer.resetAgents(10,10,threds_number[threads_number_id]);
