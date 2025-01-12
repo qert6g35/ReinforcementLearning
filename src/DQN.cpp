@@ -128,12 +128,12 @@ std::chrono::_V2::system_clock::time_point DQN::collect_time(bool start_else_end
     using std::chrono::duration;
     std::chrono::_V2::system_clock::time_point action_time = high_resolution_clock::now();
     if(start_else_end){
-        duration<long double, std::milli> t =  action_time - start_learning_time;
+        duration<long double, std::micro> t =  action_time - start_learning_time;
         learning_times[0][thread_id + 1] = t.count(); // true czas startu procesu
         
         //cout<<"colected time: "<<learning_times[0][learning_batch_size + 1]<<endl;
     }else{
-        duration<long double, std::milli> t =  action_time - time_differ;
+        duration<long double, std::micro> t =  action_time - time_differ;
         learning_times[1][thread_id + 1] = t.count(); // false czas końca procesu
         //cout<<"colected time: "<<learning_times[1][learning_batch_size + 1]<<endl;
     }
@@ -143,13 +143,22 @@ std::chrono::_V2::system_clock::time_point DQN::collect_time(bool start_else_end
 void DQN::safe_data_to_file(bool is_update_times){
     thread_times_file<<to_string(folder_to_safe_to)<<","<<to_string(learning_batch_size);
     if(is_update_times){
-            thread_times_file<<",U,";
-        }else{
-            thread_times_file<<",L,";
-        }
-    for(int t_id =0; t_id < 128 + 1;t_id ++){
-        thread_times_file<<learning_times[0][t_id]<<","<<learning_times[1][t_id]<<",";
+        thread_times_file<<",U,";
+    }else{
+        thread_times_file<<",L,";
     }
+    thread_times_file<<learning_times[0][0]<<","<<learning_times[1][0]<<",";
+    long double EST_threaded = learning_times[0][1];
+    int LFT_threadedID = 1;
+    for(int t_id =2; t_id < 128 + 1;t_id ++){
+        if(learning_times[0][t_id] > 0 &&learning_times[1][t_id] > 0){
+            if(learning_times[0][t_id]<EST_threaded)
+                EST_threaded = learning_times[0][t_id];
+            if(learning_times[0][t_id] + learning_times[1][t_id] > learning_times[0][LFT_threadedID] + learning_times[1][LFT_threadedID])
+                LFT_threadedID = t_id;
+        }
+    }
+    thread_times_file<<EST_threaded<<","<<learning_times[0][LFT_threadedID] + learning_times[1][LFT_threadedID] - EST_threaded<<",";
     thread_times_file<<endl;
 }
 
@@ -257,7 +266,7 @@ void DQN::makeDQN_Thread(int thread_idx){
             });
             start_ulck.unlock();
 
-            std::chrono::_V2::system_clock::time_point tp_saved = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
+            tp_saved = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
 
             
             //lck.unlock();true== 0){
@@ -291,7 +300,6 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     std::chrono::_V2::system_clock::time_point tp_saved;
     //thread_times_file.open("work_balance_data/"+std::to_string(folder_to_safe_to)+"/threadsTime_"+ std::to_string(learning_batch_size) + ".csv", std::ios::app);
     thread_times_file.open("work_balance_data/threadsTime.csv", std::ios::app);
-    thread_times_file<<"started working"<<endl;;
     final_agent = agent.copy();
     assert(learning_batch_size <= threads_numer);
     bool whait_for_update = false;
@@ -313,6 +321,10 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     std::unique_lock<std::mutex> finish_lck(finished_threaded_updateing_mtx);
     finish_lck.unlock();
     if(use_threads)
+        for(int i =0 ; i < threads_numer; i++){
+            learning_times[0][i] = 0.0;
+            learning_times[1][i] = 0.0;
+        }
         for(int thread_id = 0; thread_id < learning_batch_size; thread_id++){
             thread_finished_learning[thread_id] = true;
             thread_finished_updateing[thread_id] = true;
@@ -429,11 +441,11 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                         cout<<"MAIN_TRAIN post w8ing for update END"<<endl;
 
 
-                //TODO zapisujemy do pliku ile czasu wyniosła nas główna pętla
-                safe_data_to_file(true);
+                    //TODO zapisujemy do pliku ile czasu wyniosła nas główna pętla
+                    safe_data_to_file(true);
 
-                collect_time(true,-1);// zapisujemy czas początku prac main thread przy głównej pentli (zbieraniu tracea)
-                    
+                    tp_saved = collect_time(true,-1);// zapisujemy czas początku prac main thread przy głównej pentli (zbieraniu tracea)
+                        
                 }else{
                     if(game.check_if_good_enougth(&agent)){
                         network_learned = true;

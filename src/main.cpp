@@ -136,7 +136,7 @@ void run_multithreaded_tests(){
             trainer.set_agent(agent_prime.copy());
             trainer.train(&time,&steps,NULL);
             //game.show_how_it_works(agent);
-            writeHere<<"0,"<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
+            writeHere<<helper<<","<<threds_number[threads_number_id]<<","<<time<<","<<steps<<endl;
             if((time < 0 && prev_time < 0) || (time < 0 && steps >= 1000000) ){
                 cout<<"LEARNING JAMMED"<<endl;
                 return;
@@ -287,7 +287,15 @@ __ od tąd już chyba zmiany przechodzą w gruboziarnistość___
  * 
  * 
  * 
- * Nowa ocena kodu i wyplutych wyników:
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *? Nowa ocena kodu i wyplutych wyników:
  * 
  * brakuje czasów działania wątków. Musimy zbierać czasy (timestampy) pracy każdego wątku. Czyli 
  * timestampy:
@@ -297,17 +305,17 @@ __ od tąd już chyba zmiany przechodzą w gruboziarnistość___
  ** czekania aż local_agenty się zupdateują
  * 
  * do tego analiza czasu wypałnienia pracy, czyli chcemy wiedzieć ile czasu wątki uczą agentów, 
- * a ile czasu czekamy na główny wątek tak żeby można było skożystać z prawa amdala do liczenia przyśpieszenia/efektywności 
+ * a ile czasu czekamy na główny wątek ..tylko..po..co.. 
  * 
- * (ewentualne ulepszenie)
- * zamist sterować ilością wątków sterujemy czasem uczenia i mamy stałą ilość wątków tylko one przez x czasu mają okazę uczyć swojego agenta.
+ * ? z prawa amdala możemy wyliczyć : S_ub (górna granica przyśpieszenia)
  * 
+ * ? obliczenia pozwalają nam wyznaczyć P
+ * * P - część programu którą da się zrównoleglić 
  * 
+ * P można też wyestymować z experymentalnego przyśpieszenia
  * 
+ * ? można te dwa czasy ze sobą porównać 
  * 
- * 
- * 
- * 
- * 
+ * ? c ojeszcze można dzięki tym badaniom zobaczyc? 
  * 
  */
