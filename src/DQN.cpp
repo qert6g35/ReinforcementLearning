@@ -123,18 +123,21 @@ void DQN::learn_from_memory(int thread_id){
     agent.learn(q_correction,learningExample.action,learningExample.game,true);
 }
 
-void DQN::collect_time(bool start_else_end,int thread_id){
+std::chrono::_V2::system_clock::time_point DQN::collect_time(bool start_else_end,int thread_id,std::chrono::_V2::system_clock::time_point time_differ){
     using std::chrono::high_resolution_clock;
     using std::chrono::duration;
-    std::chrono::_V2::system_clock::time_point finished_main_thread_actions = high_resolution_clock::now();
-    duration<double, std::milli> t =  finished_main_thread_actions - start_learning_time;
+    std::chrono::_V2::system_clock::time_point action_time = high_resolution_clock::now();
     if(start_else_end){
+        duration<long double, std::milli> t =  action_time - start_learning_time;
         learning_times[0][thread_id + 1] = t.count(); // true czas startu procesu
+        
         //cout<<"colected time: "<<learning_times[0][learning_batch_size + 1]<<endl;
     }else{
+        duration<long double, std::milli> t =  action_time - time_differ;
         learning_times[1][thread_id + 1] = t.count(); // false czas końca procesu
         //cout<<"colected time: "<<learning_times[1][learning_batch_size + 1]<<endl;
     }
+    return action_time;
 }
 
 void DQN::safe_data_to_file(bool is_update_times){
@@ -179,7 +182,7 @@ void DQN::makeDQN_Thread(int thread_idx){
         if(dev_debug_threading)
             cout<<"therad "<<thread_idx<<" started next learning session"<<endl;
 
-        collect_time(false,thread_idx); // zapisujemy czas rozpoczęcia uczenia
+        std::chrono::_V2::system_clock::time_point tp_saved = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia uczenia
 
         if(!threads_keep_working){
             return;
@@ -240,7 +243,7 @@ void DQN::makeDQN_Thread(int thread_idx){
             //showBestChoicesFor(local_agent);
         }
         
-        collect_time(false,thread_idx); // zapisujemy czas zakończenia uczenia
+        collect_time(false,thread_idx,tp_saved); // zapisujemy czas zakończenia uczenia
 
         //czekamy aż Master powie że można zupdateować local agenta
         if(update_local_agent_flag){
@@ -254,7 +257,7 @@ void DQN::makeDQN_Thread(int thread_idx){
             });
             start_ulck.unlock();
 
-            collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
+            std::chrono::_V2::system_clock::time_point tp_saved = collect_time(true,thread_idx); // zapisujemy czas rozpoczęcia updateowania
 
             
             //lck.unlock();true== 0){
@@ -265,7 +268,7 @@ void DQN::makeDQN_Thread(int thread_idx){
 
             
             thread_finished_updateing[thread_idx] = true; // zaznaczamy że skończyliśmy udate
-            collect_time(false,thread_idx); // zapisujemy czas zakończenia updateowania
+            collect_time(false,thread_idx,tp_saved); // zapisujemy czas zakończenia updateowania
             finish_ulck.lock();
             if(dev_debug_threading){
                 cout<<"therad "<<thread_idx<<" pre notify all"<<endl;
@@ -285,7 +288,7 @@ void DQN::makeDQN_Thread(int thread_idx){
 
 Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     using std::chrono::high_resolution_clock;
-    
+    std::chrono::_V2::system_clock::time_point tp_saved;
     //thread_times_file.open("work_balance_data/"+std::to_string(folder_to_safe_to)+"/threadsTime_"+ std::to_string(learning_batch_size) + ".csv", std::ios::app);
     thread_times_file.open("work_balance_data/threadsTime.csv", std::ios::app);
     thread_times_file<<"started working"<<endl;;
@@ -319,7 +322,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
     for (i=0 ; i<episode_n ; i++){
         steps=0;
         done=false;
-        collect_time(true,-1); // zapisujemy czas o starcie pracy głównego wątku 
+        tp_saved = collect_time(true,-1); // zapisujemy czas o starcie pracy głównego wątku 
         game.reset();
         while(!done && steps<n_steps_in_one_go && network_learned == false){
             //cout<<"start sampling"<<endl
@@ -334,7 +337,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                     done = collect_memory_step();
                 }
             }
-            collect_time(false,-1); // zapisujemy czas o końcu pracy głównego wątku 
+            collect_time(false,-1,tp_saved); // zapisujemy czas o końcu pracy głównego wątku 
 
             if(use_threads){
                 
@@ -375,7 +378,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                 //TODO zapisujemy do pliku ile czasu wyniosła nas główna pętla
                 safe_data_to_file(false);
 
-                collect_time(true,-1);// zapisujemy czas początku prac main thread przy update lub czas startu zbierania tracea
+                tp_saved = collect_time(true,-1);// zapisujemy czas początku prac main thread przy update lub czas startu zbierania tracea
                 
                 if(update_local_agent){
                     if(dev_debug_threading)
@@ -399,7 +402,7 @@ Policy DQN::train(double* learning_time,int* steps_done,int* episodes){
                         //showBestChoicesFor(local_agent);
                     }
 
-                    collect_time(false,-1);// koniec robót main thread podczas updateowania agenta
+                    collect_time(false,-1,tp_saved);// koniec robót main thread podczas updateowania agenta
 
                     if(dev_debug_threading)
                         cout<<"MAIN_TRAIN w8ing for threads update  (PRE LOCK)"<<endl;

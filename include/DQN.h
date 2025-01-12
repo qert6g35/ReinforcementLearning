@@ -111,7 +111,7 @@ public:
     void changeGame(int sizeH,int sizeW);
     bool have_any_nan(Policy agent);
 
-    void collect_time(bool start_else_end,int thread_id);
+    std::chrono::_V2::system_clock::time_point collect_time(bool start_else_end,int thread_id,std::chrono::_V2::system_clock::time_point time_differ = std::chrono::_V2::system_clock::time_point());
     void safe_data_to_file(bool is_update_times);
 
     int folder_to_safe_to = 0;

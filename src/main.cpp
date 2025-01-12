@@ -116,7 +116,7 @@ void run_multithreaded_tests(){
     
     double time = 0;
     double prev_time = 2;
-    int steps = 10000;
+    int steps = 0;
     int threds_number[11] = {128,64,1,2,4,6,8,12,16,24,32};
     shuffle(threds_number,11);
     // cout<<"start sampling in order:"<<endl;
